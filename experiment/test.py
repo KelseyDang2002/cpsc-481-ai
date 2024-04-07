@@ -1,3 +1,6 @@
+# This code is not ours.
+# This code is from the Connect 4 game tutorial by Keith Galli on YouTube.
+
 import numpy as np
 
 ROW_COUNT = 6
