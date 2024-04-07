@@ -14,18 +14,46 @@ def place_piece(board, row, col_input, piece):
 
 ''' Location is valid if top row is not filled '''
 def is_valid_location(board, col_input):
-    return board[5][col_input] == 0
+    return board[ROW_COUNT - 1][col_input] == 0
 
-''' TODO '''
+''' Get the next open row '''
 def get_next_open_row(board, col_input):
     for r in range(ROW_COUNT):
         if board[r][col_input] == 0:
             return r
 
-''' Change orientatiom of board upside-down '''
+''' Change orientation of board upside-down '''
 def print_board(board):
+    print("\n")
     print(np.flip(board, 0))
 
+''' All 4-in-a-row winning combinations '''
+def winning_move(board, piece):
+    # Check horizontal locations for win
+    for c in range(COLUMN_COUNT - 3): # Subtact 3 because 4-in-a-row cannot start at indeces 4-6
+        for r in range(ROW_COUNT):
+            if board[r][c] == piece and board[r][c+1] == piece and board[r][c+2] == piece and board[r][c+3] == piece:
+                return True
+            
+    # Check vertical locations for win
+    for c in range(COLUMN_COUNT):
+        for r in range(ROW_COUNT - 3): # Subtact 3 because 4-in-a-row cannot start at top 3 rows
+            if board[r][c] == piece and board[r+1][c] == piece and board[r+2][c] == piece and board[r+3][c] == piece:
+                return True
+            
+    # Check positively sloped diagonals
+    for c in range(COLUMN_COUNT - 3): # index 0 to index 4
+        for r in range(ROW_COUNT - 3): # index 0 to index 3
+            if board[r][c] == piece and board[r+1][c+1] == piece and board[r+2][c+2] == piece and board[r+3][c+3] == piece:
+                return True
+
+    # Check negatively sloped diagonals
+    for c in range(COLUMN_COUNT):
+        for r in range(3, ROW_COUNT): # index 3 through index 6
+            if board[r][c] == piece and board[r-1][c+1] == piece and board[r-2][c+2] == piece and board[r-3][c+3] == piece:
+                return True
+
+''' Main '''
 board = create_board()
 print_board(board)
 game_over = False
@@ -40,6 +68,10 @@ while not game_over:
             row = get_next_open_row(board, col_input)
             place_piece(board, row, col_input, 1)
 
+            if winning_move(board, 1):
+                print("PLAYER 1 WINS!!!")
+                game_over = True
+
     # Ask for Player 2 input
     else:
         col_input = int(input("Player 2 make your selection (0-6): "))
@@ -47,6 +79,10 @@ while not game_over:
         if is_valid_location(board, col_input):
             row = get_next_open_row(board, col_input)
             place_piece(board, row, col_input, 2)
+
+            if winning_move(board, 2):
+                print("PLAYER 2 WINS!!!")
+                game_over = True
 
     print_board(board)
 
