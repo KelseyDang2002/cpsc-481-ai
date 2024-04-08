@@ -4,12 +4,14 @@
 import numpy as np
 import pygame
 import sys
+import math
 
 ROW_COUNT = 6
 COLUMN_COUNT = 7
 SQUARE_SIZE = 100 # Size of squares in window is 100 pixels
-RADIUS = int(SQUARE_SIZE / 2 - 5)
+RADIUS = int(SQUARE_SIZE / 2 - 5) # radius for circles/player pieces
 
+# define game colors
 COLOR_BLUE = (0, 0, 255)
 COLOR_BLACK = (0, 0, 0)
 COLOR_RED = (255, 0, 0)
@@ -35,8 +37,8 @@ def get_next_open_row(board, col_input):
             return r
 
 ''' Change orientation of board upside-down '''
-def print_board(board):
-    print("\n")
+def print_terminal_board(board):
+    print(end = "\n")
     print(np.flip(board, 0))
 
 ''' All 4-in-a-row winning combinations '''
@@ -65,33 +67,39 @@ def winning_move(board, piece):
             if board[r][c] == piece and board[r-1][c+1] == piece and board[r-2][c+2] == piece and board[r-3][c+3] == piece:
                 return True
             
-def draw_board(board):
+def draw_pygame_board(board):
     for c in range(COLUMN_COUNT):
         for r in range(ROW_COUNT):
+            # draws the board
             pygame.draw.rect(screen, COLOR_BLUE, (c * SQUARE_SIZE, r * SQUARE_SIZE + SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE))
             pygame.draw.circle(screen, COLOR_BLACK, (int(c * SQUARE_SIZE + SQUARE_SIZE / 2), int(r * SQUARE_SIZE + SQUARE_SIZE + SQUARE_SIZE / 2)), RADIUS)
-            
-# def create_window():
-#     window_width = COLUMN_COUNT * SQUARE_SIZE
-#     window_height = (ROW_COUNT + 1) * SQUARE_SIZE
-#     window_size = (window_width, window_height)
-#     window = pygame.display.set_mode(window_size)
-#     return window
+
+    for c in range(COLUMN_COUNT):
+        for r in range(ROW_COUNT):
+            if board[r][c] == 1:
+                # draws the red player pieces
+                pygame.draw.circle(screen, COLOR_RED, (int(c * SQUARE_SIZE + SQUARE_SIZE / 2), window_height - int(r * SQUARE_SIZE + SQUARE_SIZE / 2)), RADIUS)
+
+            elif board[r][c] == 2:
+                # draws the yellow player pieces
+                pygame.draw.circle(screen, COLOR_YELLOW, (int(c * SQUARE_SIZE + SQUARE_SIZE / 2), window_height - int(r * SQUARE_SIZE + SQUARE_SIZE / 2)), RADIUS)
+
+    pygame.display.update()
 
 ''' Main '''
 board = create_board()
-print_board(board)
+print_terminal_board(board)
 game_over = False
 turn = 0
 pygame.init()
-# screen = create_window()
+gamefont = pygame.font.SysFont("monospace", 75)
 
 window_width = COLUMN_COUNT * SQUARE_SIZE
-window_height = (ROW_COUNT + 1) * SQUARE_SIZE
+window_height = (ROW_COUNT + 1) * SQUARE_SIZE # +1 for the black top row
 window_size = (window_width, window_height)
 screen = pygame.display.set_mode(window_size)
 
-draw_board(board)
+draw_pygame_board(board)
 pygame.display.update()
 
 while not game_over:
@@ -99,41 +107,68 @@ while not game_over:
         if event.type == pygame.QUIT:
             sys.exit()
 
+        if event.type == pygame.MOUSEMOTION:
+            # player piece follows mouse cursor
+            pygame.draw.rect(screen, COLOR_BLACK, (0, 0, window_width, SQUARE_SIZE))
+            posx = event.pos[0]
+
+            if turn == 0:
+                # red player piece gets dropped
+                pygame.draw.circle(screen, COLOR_RED, (posx, int(SQUARE_SIZE/2)), RADIUS)
+            
+            else: # if turn == 1
+                # yellow player piece gets dropped
+                pygame.draw.circle(screen, COLOR_YELLOW, (posx, int(SQUARE_SIZE/2)), RADIUS)
+
+        pygame.display.update()
+
         if event.type == pygame.MOUSEBUTTONDOWN:
-            print("")
-            # Ask for Player 1 input
-            # if turn == 0:
-            #     col_input = int(input("Player 1 make your selection (0-6): "))
+            # Creates black top rectangle to cover player piece after a win
+            pygame.draw.rect(screen, COLOR_BLACK, (0, 0, window_width, SQUARE_SIZE))
+            
+            # Player 1 input
+            if turn == 0:
+                posx = event.pos[0]
+                col_input = int(math.floor(posx / SQUARE_SIZE)) # divide to get numbers 0-7
 
-            #     if is_valid_location(board, col_input):
-            #         row = get_next_open_row(board, col_input)
-            #         place_piece(board, row, col_input, 1)
+                if is_valid_location(board, col_input):
+                    row = get_next_open_row(board, col_input)
+                    place_piece(board, row, col_input, 1)
 
-            #         if winning_move(board, 1):
-            #             print("PLAYER 1 WINS!!!")
-            #             game_over = True
+                    if winning_move(board, 1):
+                        print("\nPLAYER 1 WINS!!!")
+                        label = gamefont.render("PLAYER 1 WINS", 1, COLOR_RED) # create player win text
+                        screen.blit(label, (40, 10))
+                        game_over = True
 
-            #     else:
-            #         print("Invalid move, try again.")
-            #         turn -= 1
+                else: # invalid location
+                    print("\nInvalid move, try again.")
+                    turn -= 1
 
-            # # Ask for Player 2 input
-            # else: # if turn == 1
-            #     col_input = int(input("Player 2 make your selection (0-6): "))
+            # Player 2 input
+            else: # if turn == 1
+                posx = event.pos[0]
+                col_input = int(math.floor(posx / SQUARE_SIZE)) # divide to get numbers 0-7
 
-            #     if is_valid_location(board, col_input):
-            #         row = get_next_open_row(board, col_input)
-            #         place_piece(board, row, col_input, 2)
+                if is_valid_location(board, col_input):
+                    row = get_next_open_row(board, col_input)
+                    place_piece(board, row, col_input, 2)
 
-            #         if winning_move(board, 2):
-            #             print("PLAYER 2 WINS!!!")
-            #             game_over = True
+                    if winning_move(board, 2):
+                        print("\nPLAYER 2 WINS!!!")
+                        label = gamefont.render("PLAYER 2 WINS", 2, COLOR_YELLOW) # create player win text
+                        screen.blit(label, (40, 10))
+                        game_over = True
                     
-            #     else:
-            #         print("Invalid move, try again.")
-            #         turn -= 1
+                else: # invalid location
+                    print("\nInvalid move, try again.")
+                    turn -= 1
 
-            # print_board(board)
+            print_terminal_board(board)
+            draw_pygame_board(board)
 
-            # turn += 1
-            # turn = turn % 2 # alternate turn to be equal to 0 or 1
+            turn += 1
+            turn = turn % 2 # alternate turn to be equal to 0 or 1
+
+            if game_over:
+                pygame.time.wait(2000)
