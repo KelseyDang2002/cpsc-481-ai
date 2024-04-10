@@ -5,11 +5,20 @@ import numpy as np
 import pygame
 import sys
 import math
+import random
 
 ROW_COUNT = 6
 COLUMN_COUNT = 7
+WINDOW_LENGTH = 4
 SQUARE_SIZE = 100 # Size of squares in window is 100 pixels
 RADIUS = int(SQUARE_SIZE / 2 - 5) # radius for circles/player pieces
+
+PLAYER = 0
+AI = 1
+
+EMPTY = 0
+PLAYER_PIECE = 1
+AI_PIECE = 2
 
 # define game colors
 COLOR_BLUE = (0, 0, 255)
@@ -17,31 +26,31 @@ COLOR_BLACK = (0, 0, 0)
 COLOR_RED = (255, 0, 0)
 COLOR_YELLOW = (255, 255, 0)
 
-''' Create the game board with 6 rows & 7 columns '''
+''' Function to create the game board with 6 rows & 7 columns '''
 def create_board():
     board = np.zeros((ROW_COUNT, COLUMN_COUNT))
     return board
 
-''' Place piece in selected column '''
+''' Function to place piece in selected column '''
 def place_piece(board, row, col_input, piece):
     board[row][col_input] = piece
 
-''' Location is valid if top row is not filled '''
+''' Function to see if a location is valid when the top row is not filled '''
 def is_valid_location(board, col_input):
     return board[ROW_COUNT - 1][col_input] == 0
 
-''' Get the next open row '''
+''' Function to get the next open row '''
 def get_next_open_row(board, col_input):
     for r in range(ROW_COUNT):
         if board[r][col_input] == 0:
             return r
 
-''' Change orientation of board upside-down '''
+''' Function to change orientation of board upside-down '''
 def print_terminal_board(board):
     print(end = "\n")
     print(np.flip(board, 0))
 
-''' All 4-in-a-row winning combinations '''
+''' Function that defines all 4-in-a-row winning combinations '''
 def winning_move(board, piece):
     # Check horizontal locations for win
     for c in range(COLUMN_COUNT - 3): # Subtact 3 because 4-in-a-row cannot start at indeces 4-6
@@ -67,6 +76,40 @@ def winning_move(board, piece):
             if board[r][c] == piece and board[r-1][c+1] == piece and board[r-2][c+2] == piece and board[r-3][c+3] == piece:
                 return True
             
+''' Function to keep track of the score based on piece positions for the AI '''
+def score_position(board, piece):
+    # Horizontal score
+    score = 0
+    for r in range(ROW_COUNT):
+        row_array = [int(i) for i in list(board[r,:])] # get all coloumn positions in a certain row r
+        for c in range(COLUMN_COUNT - 3):
+            window = row_array[c:c + WINDOW_LENGTH]
+            
+            if window.count(piece) == 4: # if window contains 4 pieces of same color = win
+                score += 100
+            elif window.count(piece) == 3 and window.count(EMPTY) == 1: # if window has 3 pieces of same color
+                score += 10
+                
+    return score
+
+''' Function to determine whether a location is valid '''
+def get_valid_locations(board):
+    valid_locations = []
+    for col_input in range(COLUMN_COUNT):
+        if is_valid_location(board, col_input):
+            valid_locations.append(col_input)
+        return valid_locations
+
+''' Function for the AI to pick the best move '''
+def pick_best_move(board, piece):
+    valid_locations = get_valid_locations(board)
+    for col_input in valid_locations:
+        row = get_next_open_row(board, col_input)
+        temp_board = board.copy()
+        place_piece(temp_board, row, col_input, piece)
+        # TODO
+
+''' Function to draw the pygame board GUI '''    
 def draw_pygame_board(board):
     for c in range(COLUMN_COUNT):
         for r in range(ROW_COUNT):
@@ -76,11 +119,11 @@ def draw_pygame_board(board):
 
     for c in range(COLUMN_COUNT):
         for r in range(ROW_COUNT):
-            if board[r][c] == 1:
+            if board[r][c] == PLAYER_PIECE:
                 # draws the red player pieces
                 pygame.draw.circle(screen, COLOR_RED, (int(c * SQUARE_SIZE + SQUARE_SIZE / 2), window_height - int(r * SQUARE_SIZE + SQUARE_SIZE / 2)), RADIUS)
 
-            elif board[r][c] == 2:
+            elif board[r][c] == AI_PIECE:
                 # draws the yellow player pieces
                 pygame.draw.circle(screen, COLOR_YELLOW, (int(c * SQUARE_SIZE + SQUARE_SIZE / 2), window_height - int(r * SQUARE_SIZE + SQUARE_SIZE / 2)), RADIUS)
 
@@ -90,7 +133,7 @@ def draw_pygame_board(board):
 board = create_board()
 print_terminal_board(board)
 game_over = False
-turn = 0
+turn = random.randint(PLAYER, AI) # randomly selects who has first turn
 pygame.init()
 gamefont = pygame.font.SysFont("monospace", 75)
 
@@ -112,13 +155,9 @@ while not game_over:
             pygame.draw.rect(screen, COLOR_BLACK, (0, 0, window_width, SQUARE_SIZE))
             posx = event.pos[0]
 
-            if turn == 0:
+            if turn == PLAYER:
                 # red player piece gets dropped
                 pygame.draw.circle(screen, COLOR_RED, (posx, int(SQUARE_SIZE/2)), RADIUS)
-            
-            else: # if turn == 1
-                # yellow player piece gets dropped
-                pygame.draw.circle(screen, COLOR_YELLOW, (posx, int(SQUARE_SIZE/2)), RADIUS)
 
         pygame.display.update()
 
@@ -127,48 +166,54 @@ while not game_over:
             pygame.draw.rect(screen, COLOR_BLACK, (0, 0, window_width, SQUARE_SIZE))
             
             # Player 1 input
-            if turn == 0:
+            if turn == PLAYER:
                 posx = event.pos[0]
                 col_input = int(math.floor(posx / SQUARE_SIZE)) # divide to get numbers 0-7
 
                 if is_valid_location(board, col_input):
                     row = get_next_open_row(board, col_input)
-                    place_piece(board, row, col_input, 1)
+                    place_piece(board, row, col_input, PLAYER_PIECE)
 
-                    if winning_move(board, 1):
+                    if winning_move(board, PLAYER_PIECE):
                         print("\nPLAYER 1 WINS!!!")
                         label = gamefont.render("PLAYER 1 WINS", 1, COLOR_RED) # create player win text
                         screen.blit(label, (40, 10))
                         game_over = True
+                        
+                    print_terminal_board(board)
+                    draw_pygame_board(board)
+                        
+                    turn += 1
+                    turn = turn % 2 # alternate turn to be equal to 0 or 1
 
                 else: # invalid location
                     print("\nInvalid move, try again.")
                     turn -= 1
 
-            # Player 2 input
-            else: # if turn == 1
-                posx = event.pos[0]
-                col_input = int(math.floor(posx / SQUARE_SIZE)) # divide to get numbers 0-7
+    # Player 2 input
+    if turn == AI and not game_over:
+        col_input = random.randint(0, COLUMN_COUNT - 1) # randomly select column for computer piece
 
-                if is_valid_location(board, col_input):
-                    row = get_next_open_row(board, col_input)
-                    place_piece(board, row, col_input, 2)
+        if is_valid_location(board, col_input):
+            pygame.time.wait(500)
+            row = get_next_open_row(board, col_input)
+            place_piece(board, row, col_input, AI_PIECE)
 
-                    if winning_move(board, 2):
-                        print("\nPLAYER 2 WINS!!!")
-                        label = gamefont.render("PLAYER 2 WINS", 2, COLOR_YELLOW) # create player win text
-                        screen.blit(label, (40, 10))
-                        game_over = True
-                    
-                else: # invalid location
-                    print("\nInvalid move, try again.")
-                    turn -= 1
+            if winning_move(board, AI_PIECE):
+                print("\nPLAYER 2 WINS!!!")
+                label = gamefont.render("PLAYER 2 WINS", 2, COLOR_YELLOW) # create player win text
+                screen.blit(label, (40, 10))
+                game_over = True
 
             print_terminal_board(board)
             draw_pygame_board(board)
 
             turn += 1
             turn = turn % 2 # alternate turn to be equal to 0 or 1
+            
+        else: # invalid location
+            print("\nInvalid move, try again.")
+            turn -= 1
 
-            if game_over:
-                pygame.time.wait(2000)
+    if game_over:
+        pygame.time.wait(2000)
