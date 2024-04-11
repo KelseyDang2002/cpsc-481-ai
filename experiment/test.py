@@ -64,50 +64,160 @@ def winning_move(board, piece):
             if board[r][c] == piece and board[r+1][c] == piece and board[r+2][c] == piece and board[r+3][c] == piece:
                 return True
             
-    # Check positively sloped diagonals
+    # Check positively sloped diagonals (/)
     for c in range(COLUMN_COUNT - 3): # index 0 to index 4
         for r in range(ROW_COUNT - 3): # index 0 to index 3
             if board[r][c] == piece and board[r+1][c+1] == piece and board[r+2][c+2] == piece and board[r+3][c+3] == piece:
                 return True
 
-    # Check negatively sloped diagonals
-    for c in range(COLUMN_COUNT):
+    # Check negatively sloped diagonals (\)
+    for c in range(COLUMN_COUNT - 3): # index 0 to index 4
         for r in range(3, ROW_COUNT): # index 3 through index 6
             if board[r][c] == piece and board[r-1][c+1] == piece and board[r-2][c+2] == piece and board[r-3][c+3] == piece:
                 return True
-            
-''' Function to keep track of the score based on piece positions for the AI '''
-def score_position(board, piece):
-    # Horizontal score
+
+''' (AI) Function that evaulates windows of size 4 ''' 
+def evaluate_window(window, piece):
     score = 0
+    opponent_piece = PLAYER_PIECE
+    
+    if piece == PLAYER_PIECE:
+        opponent_piece = AI_PIECE
+    
+    # AI score
+    if window.count(piece) == 4: # if window contains 4 pieces of same color = win
+        score += 100
+    elif window.count(piece) == 3 and window.count(EMPTY) == 1: # if window has 3 pieces of same color
+        score += 5
+    elif window.count(piece) == 2 and window.count(EMPTY) == 2: # if window has 2 pieces of same color
+        score += 2
+        
+    # Opponent score
+    if window.count(opponent_piece) == 3 and window.count(EMPTY) == 1: # opponent window has 3 pieces
+        score -= 4
+        
+    return score
+            
+''' (AI) Function to keep track of the score based on piece positions for the AI '''
+def score_position(board, piece):
+    score = 0
+    # Center column score
+    center_array = [int(i) for i in list(board[:, COLUMN_COUNT // 2])] # COLUMN_COUNT // 2 = 4 = center column
+    center_count = center_array.count(piece)
+    score += center_count * 3
+    
+    # Horizontal score
+    # AI will prioritize getting horizontal 4-in-a-rows
     for r in range(ROW_COUNT):
         row_array = [int(i) for i in list(board[r,:])] # get all coloumn positions in a certain row r
         for c in range(COLUMN_COUNT - 3):
             window = row_array[c:c + WINDOW_LENGTH]
-            
-            if window.count(piece) == 4: # if window contains 4 pieces of same color = win
-                score += 100
-            elif window.count(piece) == 3 and window.count(EMPTY) == 1: # if window has 3 pieces of same color
-                score += 10
+            score += evaluate_window(window, piece)
+                
+    # Vertical score
+    # AI will also prioritize getting vertical 4-in-a-rows
+    for c in range(COLUMN_COUNT):
+        col_array = [int(i) for i in list(board[:,c])] # get all row positions in a certain column c
+        for r in range(ROW_COUNT - 3):
+            window = col_array[r:r + WINDOW_LENGTH]
+            score += evaluate_window(window, piece)
+
+    # Positively sloped diagonal score (/)
+    # AI prioritize 4-in-a-row in positive diagonal
+    for r in range(ROW_COUNT - 3):
+        for c in range(COLUMN_COUNT - 3):
+            window = [board[r + i][c + i] for i in range(WINDOW_LENGTH)] # start with r index i and c index i
+            score += evaluate_window(window, piece)
+
+    # Negatively sloped diagonal score (\)
+    # AI prioritize 4-in-a-row in negative diagonal
+    for r in range(ROW_COUNT - 3):
+        for c in range(COLUMN_COUNT - 3):
+            window = [board[r + 3 - i][c + i] for i in range(WINDOW_LENGTH)] # start with r index 3 and c index i
+            score += evaluate_window(window, piece)
                 
     return score
 
-''' Function to determine whether a location is valid '''
-def get_valid_locations(board):
-    valid_locations = []
-    for col_input in range(COLUMN_COUNT):
-        if is_valid_location(board, col_input):
-            valid_locations.append(col_input)
-        return valid_locations
+''' (AI) Function that returns winning conditions or when there's no more valid locations '''
+def is_terminal_node(board):
+    return winning_move(board, PLAYER_PIECE) or winning_move(board, AI_PIECE) or len(get_valid_locations(board)) == 0
 
-''' Function for the AI to pick the best move '''
-def pick_best_move(board, piece):
+''' (AI) Function that performs minimax algorithm '''
+def minimax(board, depth, maximizingPlayer):
     valid_locations = get_valid_locations(board)
+    is_terminal = is_terminal_node(board)
+    
+    if depth == 0 or is_terminal:
+        if is_terminal:
+            if winning_move(board, AI_PIECE):
+                return (None, 10000)
+            elif winning_move(board, PLAYER_PIECE):
+                return (None, -10000)
+            else:
+                return (None, 0)
+            
+        else: # depth == 0
+            return (None, score_position(board, AI_PIECE))
+        
+    if maximizingPlayer:
+        value = -math.inf
+        column = random.choice(valid_locations)
+        
+        for col_input in valid_locations:
+            row = get_next_open_row(board, col_input)
+            board_copy = board.copy()
+            place_piece(board_copy, row, col_input, AI_PIECE)
+            new_score = minimax(board_copy, depth - 1, False)[1]
+            
+            if new_score > value:
+                value - new_score
+                column = col_input
+            
+        return column, value
+        
+    else: # Minimizing player
+        value = math.inf
+        column = random.choice(valid_locations)
+        
+        for col_input in valid_locations:
+            row = get_next_open_row(board, col_input)
+            board_copy = board.copy()
+            place_piece(board_copy, row, col_input, PLAYER_PIECE)
+            new_score = minimax(board_copy, depth - 1, True)[1]
+            
+            if new_score < value:
+                value = new_score
+                column = col_input
+            
+        return column, value
+
+''' (AI) Function for AI to determine whether a location is valid '''
+def get_valid_locations(board):
+    valid_locations = [] # list of valid locations
+    
+    for col_input in range(COLUMN_COUNT):
+        if is_valid_location(board, col_input): # if a location is valid then append to valid_locations list
+            valid_locations.append(col_input)
+    return valid_locations
+
+''' (AI) Function for the AI to pick the best move '''
+def pick_best_move(board, piece):
+    valid_locations = get_valid_locations(board) # get list of valid locations
+    best_score = -10000
+    best_col = random.choice(valid_locations) # randomly choose a location initially
+    
     for col_input in valid_locations:
         row = get_next_open_row(board, col_input)
-        temp_board = board.copy()
-        place_piece(temp_board, row, col_input, piece)
-        # TODO
+        temp_board = board.copy() # make a copy of board because we don't want to make modifications to original board
+        place_piece(temp_board, row, col_input, piece) # place piece at the random location
+        score = score_position(temp_board, piece) # score of location
+        
+        # check if score is the best score out of the valid locations
+        if score > best_score:
+            best_score = score
+            best_col = col_input
+            
+    return best_col
 
 ''' Function to draw the pygame board GUI '''    
 def draw_pygame_board(board):
@@ -165,7 +275,7 @@ while not game_over:
             # Creates black top rectangle to cover player piece after a win
             pygame.draw.rect(screen, COLOR_BLACK, (0, 0, window_width, SQUARE_SIZE))
             
-            # Player 1 input
+            # Player 1 turn
             if turn == PLAYER:
                 posx = event.pos[0]
                 col_input = int(math.floor(posx / SQUARE_SIZE)) # divide to get numbers 0-7
@@ -190,9 +300,11 @@ while not game_over:
                     print("\nInvalid move, try again.")
                     turn -= 1
 
-    # Player 2 input
+    # AI turn
     if turn == AI and not game_over:
-        col_input = random.randint(0, COLUMN_COUNT - 1) # randomly select column for computer piece
+        # col_input = random.randint(0, COLUMN_COUNT - 1) # randomly select column for computer piece
+        # col_input = pick_best_move(board, AI_PIECE)
+        col_input, minimax_score = minimax(board, 5, True) # depth of 5 starts to become slow
 
         if is_valid_location(board, col_input):
             pygame.time.wait(500)
@@ -216,4 +328,4 @@ while not game_over:
             turn -= 1
 
     if game_over:
-        pygame.time.wait(2000)
+        pygame.time.wait(1500)
