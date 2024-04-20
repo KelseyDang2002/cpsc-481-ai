@@ -106,7 +106,7 @@ def score_position(board, piece):
     # Center column score
     center_array = [int(i) for i in list(board[:, COLUMN_COUNT // 2])] # COLUMN_COUNT // 2 = 4 = center column
     center_count = center_array.count(piece)
-    score += center_count * 3
+    score += center_count * 5
     
     # Horizontal score
     # AI will prioritize getting horizontal 4-in-a-rows
@@ -173,7 +173,7 @@ def minimax_alpha_beta(board, depth, alpha, beta, maximizingPlayer):
             new_score = minimax_alpha_beta(board_copy, depth - 1, alpha, beta, False)[1]
             
             if new_score > value: # get the highest scoring move
-                value - new_score
+                value = new_score
                 column = col_input
                 
             alpha = max(alpha, value)
@@ -230,6 +230,8 @@ def pick_best_move(board, piece):
             best_score = score
             best_col = col_input
             
+    pygame.time.wait(500)
+
     return best_col
 
 ''' Function to draw the pygame board GUI '''    
@@ -299,7 +301,7 @@ while not game_over:
 
                     if winning_move(board, PLAYER_PIECE):
                         print("\nPLAYER 1 WINS!!!")
-                        label = gamefont.render("PLAYER 1 WINS", 1, COLOR_RED) # create player win text
+                        label = gamefont.render("PLAYER 1 WINS", PLAYER_PIECE, COLOR_RED) # create player win text
                         screen.blit(label, (40, 10))
                         game_over = True
                         
@@ -317,16 +319,15 @@ while not game_over:
     if turn == AI and not game_over:
         # col_input = random.randint(0, COLUMN_COUNT - 1) # randomly select column for computer piece
         # col_input = pick_best_move(board, AI_PIECE) # basic AI bot
-        col_input, minimax_score = minimax_alpha_beta(board, 7, -math.inf, math.inf, True) # depth 8 starts to become slow
+        col_input, minimax_score = minimax_alpha_beta(board, 6, -math.inf, math.inf, True) # depth 8 starts to become slow
 
         if is_valid_location(board, col_input):
-            # pygame.time.wait(500)
             row = get_next_open_row(board, col_input)
             place_piece(board, row, col_input, AI_PIECE)
 
             if winning_move(board, AI_PIECE):
                 print("\nPLAYER 2 WINS!!!")
-                label = gamefont.render("PLAYER 2 WINS", 2, COLOR_YELLOW) # create player win text
+                label = gamefont.render("PLAYER 2 WINS", AI_PIECE, COLOR_YELLOW) # create player win text
                 screen.blit(label, (40, 10))
                 game_over = True
 
