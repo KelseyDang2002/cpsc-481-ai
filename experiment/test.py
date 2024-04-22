@@ -273,6 +273,7 @@ pygame.display.update()
 while not game_over:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
+            print("\nGame exit.")
             sys.exit()
 
         if event.type == pygame.MOUSEMOTION:
@@ -319,7 +320,7 @@ while not game_over:
     if turn == AI and not game_over:
         # col_input = random.randint(0, COLUMN_COUNT - 1) # randomly select column for computer piece
         # col_input = pick_best_move(board, AI_PIECE) # basic AI bot
-        col_input, minimax_score = minimax_alpha_beta(board, 6, -math.inf, math.inf, True) # depth 8 starts to become slow
+        col_input, minimax_score = minimax_alpha_beta(board, 6, -math.inf, math.inf, True) # depth 7 starts to become slow
 
         if is_valid_location(board, col_input):
             row = get_next_open_row(board, col_input)
