@@ -144,6 +144,57 @@ def score_position(board, piece):
 def is_terminal_node(board):
     return winning_move(board, PLAYER_PIECE) or winning_move(board, AI_PIECE) or len(get_valid_locations(board)) == 0
 
+''' (AI) Function that performs Minimax algorithm '''
+def minimax(board, depth, maximizingPlayer):
+    valid_locations = get_valid_locations(board)
+    is_terminal = is_terminal_node(board)
+
+    if depth == 0 or is_terminal:
+        if is_terminal: # when a terminal node is reached
+            if winning_move(board, AI_PIECE):
+                return (None, 100000)
+            elif winning_move(board, PLAYER_PIECE):
+                return (None, -100000)
+            else: # game is over
+                return (None, 0)
+            
+        else: # depth == 0
+            return (None, score_position(board, AI_PIECE))
+        
+    if maximizingPlayer:
+        value = -math.inf # V = -infinity
+        column = random.choice(valid_locations)
+
+        for col_input in valid_locations:
+            row = get_next_open_row(board, col_input)
+            board_copy = board.copy()
+            place_piece(board_copy, row, col_input, AI_PIECE)
+
+            new_score = minimax(board_copy, depth - 1, False)[1]
+
+            if new_score > value:
+                value = new_score
+                column = col_input
+
+        return column, value
+        
+    else: # Minimizing player
+        value = math.inf # V = inifinity
+        column = random.choice(valid_locations)
+
+        for col_input in valid_locations:
+            row = get_next_open_row(board, col_input)
+            board_copy = board.copy()
+            place_piece(board_copy, row, col_input, PLAYER_PIECE)
+
+            new_score = minimax(board_copy, depth - 1, True)[1]
+
+            if new_score < value:
+                value = new_score
+                column = col_input
+
+        return column, value
+
 ''' (AI) Function that performs Minimax algorithm with Alpha-Beta Pruning '''
 def minimax_alpha_beta(board, depth, alpha, beta, maximizingPlayer):
     valid_locations = get_valid_locations(board)
@@ -155,7 +206,7 @@ def minimax_alpha_beta(board, depth, alpha, beta, maximizingPlayer):
                 return (None, 100000)
             elif winning_move(board, PLAYER_PIECE):
                 return (None, -100000)
-            else:
+            else: # game is over
                 return (None, 0)
             
         else: # depth == 0
@@ -170,6 +221,7 @@ def minimax_alpha_beta(board, depth, alpha, beta, maximizingPlayer):
             row = get_next_open_row(board, col_input)
             board_copy = board.copy()
             place_piece(board_copy, row, col_input, AI_PIECE)
+
             new_score = minimax_alpha_beta(board_copy, depth - 1, alpha, beta, False)[1]
             
             if new_score > value: # get the highest scoring move
@@ -191,6 +243,7 @@ def minimax_alpha_beta(board, depth, alpha, beta, maximizingPlayer):
             row = get_next_open_row(board, col_input)
             board_copy = board.copy()
             place_piece(board_copy, row, col_input, PLAYER_PIECE)
+
             new_score = minimax_alpha_beta(board_copy, depth - 1, alpha, beta, True)[1]
             
             if new_score < value: # get the lowest scoring move
@@ -320,7 +373,8 @@ while not game_over:
     if turn == AI and not game_over:
         # col_input = random.randint(0, COLUMN_COUNT - 1) # randomly select column for computer piece
         # col_input = pick_best_move(board, AI_PIECE) # basic AI bot
-        col_input, minimax_score = minimax_alpha_beta(board, 6, -math.inf, math.inf, True) # depth 7 starts to become slow
+        col_input, minimax_score = minimax(board, 4, True) # depth 5 starts to become slow
+        # col_input, minimax_score = minimax_alpha_beta(board, 6, -math.inf, math.inf, True) # depth 7 starts to become slow
 
         if is_valid_location(board, col_input):
             row = get_next_open_row(board, col_input)
