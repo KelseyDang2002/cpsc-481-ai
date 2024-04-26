@@ -6,3 +6,9 @@
 3. Name: Steven Liu &emsp;&emsp;Email: sttvn@csu.fullerton.edu
 4. Name: Kelly Kuoch&emsp;&emsp;Email: ykuoc00001@csu.fullerton.edu
 
+## Layout of Code
+
+## How to Execute and Interact with Program
+
+## What Does Each File/Folder Do
+
