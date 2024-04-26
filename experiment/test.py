@@ -1,5 +1,5 @@
-# This code is not ours.
-# This code is from the Connect 4 game tutorial by Keith Galli on YouTube.
+# Base code is from the Connect 4 game tutorial by Keith Galli on YouTube.
+# The current code has been altered.
 
 import numpy as np
 import pygame
@@ -49,6 +49,14 @@ def get_next_open_row(board, col_input):
 def print_terminal_board(board):
     print(end = "\n")
     print(np.flip(board, 0))
+
+''' Function to print the terminal game menu '''
+def print_terminal_menu():
+    print("\n\t--- GAME MENU ---")
+    print("\n1. Basic AI (R) vs Alpha-Beta (Y)")
+    print("\n2. Minimax (R) vs Alpha-Beta (Y)")
+    print("\n3. Alpha-Beta (R) vs Alpha-Beta (Y)")
+    print("\n4. Player (R) vs Alpha-Beta (Y)")
 
 ''' Function that defines all 4-in-a-row winning combinations '''
 def winning_move(board, piece):
@@ -306,8 +314,12 @@ def draw_pygame_board(board):
                 pygame.draw.circle(screen, COLOR_YELLOW, (int(c * SQUARE_SIZE + SQUARE_SIZE / 2), window_height - int(r * SQUARE_SIZE + SQUARE_SIZE / 2)), RADIUS)
 
     pygame.display.update()
+    pygame.display.Info().current_w
 
 ''' Main '''
+print_terminal_menu()
+menu_input = int(input("\nSelect an option: "))
+
 board = create_board()
 print_terminal_board(board)
 game_over = False
@@ -329,34 +341,21 @@ while not game_over:
             print("\nGame exit.")
             sys.exit()
 
-        if event.type == pygame.MOUSEMOTION:
-            # player piece follows mouse cursor
-            pygame.draw.rect(screen, COLOR_BLACK, (0, 0, window_width, SQUARE_SIZE))
-            posx = event.pos[0]
-
+        # Basic AI turn
+        if menu_input == 1:
             if turn == PLAYER:
-                # red player piece gets dropped
-                pygame.draw.circle(screen, COLOR_RED, (posx, int(SQUARE_SIZE/2)), RADIUS)
-
-        pygame.display.update()
-
-        if event.type == pygame.MOUSEBUTTONDOWN:
-            # Creates black top rectangle to cover player piece after a win
-            pygame.draw.rect(screen, COLOR_BLACK, (0, 0, window_width, SQUARE_SIZE))
-            
-            # Player 1 turn
-            if turn == PLAYER:
-                posx = event.pos[0]
-                col_input = int(math.floor(posx / SQUARE_SIZE)) # divide to get numbers 0-7
+                col_input = pick_best_move(board, PLAYER_PIECE) # basic AI bot
+                # col_input, minimax_score = minimax(board, 4, True) # depth 5 starts to become slow
+                # col_input, minimax_score = minimax_alpha_beta(board, 5, -math.inf, math.inf, True) # depth 7 starts to become slow
 
                 if is_valid_location(board, col_input):
                     row = get_next_open_row(board, col_input)
                     place_piece(board, row, col_input, PLAYER_PIECE)
 
                     if winning_move(board, PLAYER_PIECE):
-                        print("\nPLAYER 1 WINS!!!")
-                        label = gamefont.render("PLAYER 1 WINS", PLAYER_PIECE, COLOR_RED) # create player win text
-                        screen.blit(label, (40, 10))
+                        print("\nRED WINS!!!")
+                        label = gamefont.render("RED WINS", PLAYER_PIECE, COLOR_RED) # create player win text
+                        screen.blit(label, (60, 10))
                         game_over = True
                         
                     print_terminal_board(board)
@@ -369,21 +368,116 @@ while not game_over:
                     print("\nInvalid move, try again.")
                     turn -= 1
 
-    # AI turn
+        # Minimax turn
+        elif menu_input == 2:
+            if turn == PLAYER:
+                col_input, minimax_score = minimax(board, 4, True) # depth 5 starts to become slow
+
+                if is_valid_location(board, col_input):
+                    row = get_next_open_row(board, col_input)
+                    place_piece(board, row, col_input, PLAYER_PIECE)
+
+                    if winning_move(board, PLAYER_PIECE):
+                        print("\nRED WINS!!!")
+                        label = gamefont.render("RED WINS", PLAYER_PIECE, COLOR_RED) # create player win text
+                        screen.blit(label, (60, 10))
+                        game_over = True
+                        
+                    print_terminal_board(board)
+                    draw_pygame_board(board)
+                        
+                    turn += 1
+                    turn = turn % 2 # alternate turn to be equal to 0 or 1
+
+                else: # invalid location
+                    print("\nInvalid move, try again.")
+                    turn -= 1
+
+        # Alpha-Beta turn
+        elif menu_input == 3:
+            if turn == PLAYER:
+                col_input, minimax_score = minimax_alpha_beta(board, 5, -math.inf, math.inf, True) # depth 7 starts to become slow
+
+                if is_valid_location(board, col_input):
+                    row = get_next_open_row(board, col_input)
+                    place_piece(board, row, col_input, PLAYER_PIECE)
+
+                    if winning_move(board, PLAYER_PIECE):
+                        print("\nRED WINS!!!")
+                        label = gamefont.render("RED WINS", PLAYER_PIECE, COLOR_RED) # create player win text
+                        screen.blit(label, (60, 10))
+                        game_over = True
+                        
+                    print_terminal_board(board)
+                    draw_pygame_board(board)
+                        
+                    turn += 1
+                    turn = turn % 2 # alternate turn to be equal to 0 or 1
+
+                else: # invalid location
+                    print("\nInvalid move, try again.")
+                    turn -= 1
+
+        elif menu_input == 4:
+            if event.type == pygame.MOUSEMOTION:
+                # player piece follows mouse cursor
+                pygame.draw.rect(screen, COLOR_BLACK, (0, 0, window_width, SQUARE_SIZE))
+                posx = event.pos[0]
+
+                if turn == PLAYER:
+                    # red player piece gets dropped
+                    pygame.draw.circle(screen, COLOR_RED, (posx, int(SQUARE_SIZE/2)), RADIUS)
+
+            pygame.display.update()
+
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                # Creates black top rectangle to cover player piece after a win
+                pygame.draw.rect(screen, COLOR_BLACK, (0, 0, window_width, SQUARE_SIZE))
+                
+                # Player 1 turn
+                if turn == PLAYER:
+                    posx = event.pos[0]
+                    col_input = int(math.floor(posx / SQUARE_SIZE)) # divide to get numbers 0-7
+
+                    ''' Uncomment a line for an AI to play against Alpha-Beta '''
+                    # col_input = pick_best_move(board, PLAYER_PIECE) # basic AI bot
+                    # col_input, minimax_score = minimax(board, 4, True) # depth 5 starts to become slow
+                    # col_input, minimax_score = minimax_alpha_beta(board, 5, -math.inf, math.inf, True) # depth 7 starts to become slow
+
+                    if is_valid_location(board, col_input):
+                        row = get_next_open_row(board, col_input)
+                        place_piece(board, row, col_input, PLAYER_PIECE)
+
+                        if winning_move(board, PLAYER_PIECE):
+                            print("\nRED WINS!!!")
+                            label = gamefont.render("RED WINS", PLAYER_PIECE, COLOR_RED) # create player win text
+                            screen.blit(label, (60, 10))
+                            game_over = True
+                            
+                        print_terminal_board(board)
+                        draw_pygame_board(board)
+                            
+                        turn += 1
+                        turn = turn % 2 # alternate turn to be equal to 0 or 1
+
+                    else: # invalid location
+                        print("\nInvalid move, try again.")
+                        turn -= 1
+
+    # Alpha-Beta turn
     if turn == AI and not game_over:
-        # col_input = random.randint(0, COLUMN_COUNT - 1) # randomly select column for computer piece
         # col_input = pick_best_move(board, AI_PIECE) # basic AI bot
-        col_input, minimax_score = minimax(board, 4, True) # depth 5 starts to become slow
-        # col_input, minimax_score = minimax_alpha_beta(board, 6, -math.inf, math.inf, True) # depth 7 starts to become slow
+        # col_input, minimax_score = minimax(board, 4, True) # depth 5 starts to become slow
+        col_input, minimax_score = minimax_alpha_beta(board, 5, -math.inf, math.inf, True) # depth 7 starts to become slow
 
         if is_valid_location(board, col_input):
             row = get_next_open_row(board, col_input)
             place_piece(board, row, col_input, AI_PIECE)
 
             if winning_move(board, AI_PIECE):
-                print("\nPLAYER 2 WINS!!!")
-                label = gamefont.render("PLAYER 2 WINS", AI_PIECE, COLOR_YELLOW) # create player win text
-                screen.blit(label, (40, 10))
+                print("\nYELLOW WINS!!!")
+                label = gamefont.render("YELLOW WINS", AI_PIECE, COLOR_YELLOW) # create player win text
+                screen.blit(label, (60, 10))
                 game_over = True
 
             print_terminal_board(board)
