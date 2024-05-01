@@ -318,7 +318,7 @@ def draw_pygame_board(board):
 
 ''' Main '''
 print_terminal_menu()
-menu_input = int(input("\nSelect an option: "))
+menu_input = int(input("\nSelect an option (1-4): "))
 
 board = create_board()
 print_terminal_board(board)
@@ -345,8 +345,6 @@ while not game_over:
         if menu_input == 1:
             if turn == PLAYER:
                 col_input = pick_best_move(board, PLAYER_PIECE) # basic AI bot
-                # col_input, minimax_score = minimax(board, 4, True) # depth 5 starts to become slow
-                # col_input, minimax_score = minimax_alpha_beta(board, 5, -math.inf, math.inf, True) # depth 7 starts to become slow
 
                 if is_valid_location(board, col_input):
                     row = get_next_open_row(board, col_input)
@@ -438,11 +436,6 @@ while not game_over:
                 if turn == PLAYER:
                     posx = event.pos[0]
                     col_input = int(math.floor(posx / SQUARE_SIZE)) # divide to get numbers 0-7
-
-                    ''' Uncomment a line for an AI to play against Alpha-Beta '''
-                    # col_input = pick_best_move(board, PLAYER_PIECE) # basic AI bot
-                    # col_input, minimax_score = minimax(board, 4, True) # depth 5 starts to become slow
-                    # col_input, minimax_score = minimax_alpha_beta(board, 5, -math.inf, math.inf, True) # depth 7 starts to become slow
 
                     if is_valid_location(board, col_input):
                         row = get_next_open_row(board, col_input)
