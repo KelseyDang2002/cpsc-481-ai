@@ -8,6 +8,22 @@
 
 ## Layout of Code
 
+### How the Code is Structured (High Level Overview)
+
+1. Constant Declarations
+2. Functions
+    - ...
+    - Scoring System
+    - Basic AI
+    - Minimax
+    - Minimax w/ Alpha-Beta
+    - ...
+3. Main
+    - GUI
+    - 
+
+### Description of Code Structure
+
 ## How to Execute and Interact with Program
 
 ### Setup
@@ -46,6 +62,18 @@ Select an option (1-4):
 
 3. The Pygame window should open up. If the window is running in the background, simply click on the Pygame window from your computer desktop taskbar to bring it forward.
 
+### Interaction
+
+The 4 options:
+- Option 1: Basic AI (Red) vs Alpha-Beta (Yellow)
+    - User simply spectates the basic AI (non-Minimax) play against Minimax w/ Alpha-Beta
+- Option 2: Minimax (Red) vs Alpha-Beta (Yellow)
+    - User simply spectates the Minimax algorithm play against Minimax w/ Alpha-Beta
+- Option 3: Alpha-Beta (Red) vs Alpha-Beta (Yellow)
+    - User simply spectates Minimax w/ Alpha-Beta play against itself
+- Option 4: Player (Red) vs Alpha-Beta (Yellow)
+    - User plays against Minimax w/ Alpha-Beta
+
 ## What Does Each File/Folder Do
 
 ### experiment folder
@@ -66,7 +94,7 @@ The project folder contains the source code of our Connect Four AI.
 - connect4-terminal.py
     - Starting code of terminal Connect Four from codeNewb204's Github repository, ignore this file since it does not contribute to the final code
 - connect4-ai.py
-    - The final source code that we worked on, contains minimax alpha-beta implementation from the YouTube tutorial by Keith Galli
+    - The final source code that we worked on, contains modified minimax alpha-beta implementation from the YouTube tutorial by Keith Galli
 
 ## References
 1. YouTube Connect 4 /w Minimax Tutorial: https://www.youtube.com/watch?v=MMLtza3CZFM&t=2810s 
