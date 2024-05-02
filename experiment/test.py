@@ -94,17 +94,17 @@ def evaluate_window(window, piece):
     
     # Score
     if window.count(piece) == 4: # if window contains 4 pieces of same color = win
-        score += 100
-    elif window.count(piece) == 3 and window.count(EMPTY) == 1: # if window has 3 pieces of same color
-        score += 20
-    elif window.count(piece) == 2 and window.count(EMPTY) == 2: # if window has 2 pieces of same color
         score += 10
+    elif window.count(piece) == 3 and window.count(EMPTY) == 1: # if window has 3 pieces of same color
+        score += 2
+    elif window.count(piece) == 2 and window.count(EMPTY) == 2: # if window has 2 pieces of same color
+        score += 1
         
     # Opponent score
     if window.count(opponent_piece) == 3 and window.count(EMPTY) == 1: # opponent window has 3 pieces
-        score -= 80
+        score -= 8
     elif window.count(opponent_piece) == 2 and window.count(EMPTY) == 2: # opponent window has 2 pieces
-        score -= 20
+        score -= 2
         
     return score
             
@@ -112,9 +112,10 @@ def evaluate_window(window, piece):
 def score_position(board, piece):
     score = 0
     # Center column score
+    # More pieces in center column = more possibilities for 4-in-a-rows = higher score
     center_array = [int(i) for i in list(board[:, COLUMN_COUNT // 2])] # COLUMN_COUNT // 2 = 4 = center column
     center_count = center_array.count(piece)
-    score += center_count * 5
+    score += center_count * 2
     
     # Horizontal score
     # AI will prioritize getting horizontal 4-in-a-rows
@@ -145,7 +146,37 @@ def score_position(board, piece):
         for c in range(COLUMN_COUNT - 3):
             window = [board[r + 3 - i][c + i] for i in range(WINDOW_LENGTH)] # start with r index 3 and c index i
             score += evaluate_window(window, piece)
+            
+    # Score based on indivudual board positions
+    # Score = maximum possible 4-in-a-rows from this position
+    # [3. 4. 5. 7. 5. 4. 3.]
+    # [4. 6. 8. 9. 8. 6. 4.]
+    # [5. 8. 11. 13. 11. 8. 5.]
+    # [5. 8. 11. 13. 11. 8. 5.]
+    # [4. 6. 8. 9. 8. 6. 4.]
+    # [3. 4. 5. 7. 5. 4. 3.]
+    for r in range(ROW_COUNT):
+        for c in range(COLUMN_COUNT):
+            if board[2][3] or board[3][3]:
+                score += 13
+            elif board[2][2] or board[3][2] or board[2][4] or board[3][4]:
+                score += 11
+            elif board[1][3] or board[4][3]:
+                score += 9
+            elif board[2][1] or board[3][1] or board[1][2] or board[4][2] or board[1][4] or board[4][4] or board[2][5] or board[3][5]:
+                score += 8
+            elif board[0][3] or board[5][3]:
+                score += 7
+            elif board[1][1] or board[4][1] or board[1][5] or board[4][5]:
+                score += 6
+            elif board[2][0] or board[3][0] or board[0][2] or board[5][2] or board[0][4] or board[5][4] or board[2][6] or board[3][6]:
+                score += 5
+            elif board[1][0] or board[4][0] or board[0][1] or board[5][1] or board[0][5] or board[5][5] or board[1][6] or board[4][6]:
+                score += 4
+            else: # board[0][0] or board[5][0] or board[0][6] or board[5][6]
+                score += 3
                 
+    print(f'Current score = {score}')
     return score
 
 ''' (AI) Function that returns winning conditions or when there's no more valid locations '''
@@ -241,6 +272,7 @@ def minimax_alpha_beta(board, depth, alpha, beta, maximizingPlayer):
             if alpha >= beta:
                 break
             
+        print(f'Max: Depth = {depth}\tColumn = {column}\tValue = {value}')
         return column, value
         
     else: # Minimizing player
@@ -263,6 +295,7 @@ def minimax_alpha_beta(board, depth, alpha, beta, maximizingPlayer):
             if alpha >= beta:
                 break
             
+        print(f'Min: Depth = {depth}\tColumn = {column}\tValue = {value}')
         return column, value
 
 ''' (AI) Function for AI to determine whether a location is valid '''
@@ -394,7 +427,7 @@ while not game_over:
         # Alpha-Beta turn
         elif menu_input == 3:
             if turn == PLAYER:
-                col_input, minimax_score = minimax_alpha_beta(board, 5, -math.inf, math.inf, True) # depth 7 starts to become slow
+                col_input, minimax_score = minimax_alpha_beta(board, 4, -math.inf, math.inf, True) # depth 7 starts to become slow
 
                 if is_valid_location(board, col_input):
                     row = get_next_open_row(board, col_input)
@@ -459,7 +492,7 @@ while not game_over:
 
     # Alpha-Beta turn
     if turn == AI and not game_over:
-        col_input, minimax_score = minimax_alpha_beta(board, 5, -math.inf, math.inf, True) # depth 7 starts to become slow
+        col_input, minimax_score = minimax_alpha_beta(board, 4, -math.inf, math.inf, True) # depth 7 starts to become slow
 
         if is_valid_location(board, col_input):
             row = get_next_open_row(board, col_input)
@@ -482,4 +515,4 @@ while not game_over:
             turn -= 1
 
     if game_over:
-        pygame.time.wait(1500)
+        pygame.time.wait(2000)
