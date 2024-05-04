@@ -201,7 +201,7 @@ def minimax(board, depth, maximizingPlayer):
             return (None, score_position(board, YELLOW_PIECE))
         
     if maximizingPlayer:
-        value = -math.inf # V = -infinity
+        best_score = -math.inf # V = -infinity
         column = random.choice(valid_locations)
 
         for col_input in valid_locations:
@@ -211,14 +211,14 @@ def minimax(board, depth, maximizingPlayer):
 
             new_score = minimax(board_copy, depth - 1, False)[1]
 
-            if new_score > value:
-                value = new_score
+            if new_score > best_score:
+                best_score = new_score
                 column = col_input
 
-        return column, value
+        return column, best_score
         
     else: # Minimizing player
-        value = math.inf # V = inifinity
+        best_score = math.inf # V = inifinity
         column = random.choice(valid_locations)
 
         for col_input in valid_locations:
@@ -228,11 +228,11 @@ def minimax(board, depth, maximizingPlayer):
 
             new_score = minimax(board_copy, depth - 1, True)[1]
 
-            if new_score < value:
-                value = new_score
+            if new_score < best_score:
+                best_score = new_score
                 column = col_input
 
-        return column, value
+        return column, best_score
 
 ''' (AI) Function that performs Minimax algorithm with Alpha-Beta Pruning '''
 def minimax_alpha_beta(board, depth, alpha, beta, maximizingPlayer):
@@ -253,7 +253,7 @@ def minimax_alpha_beta(board, depth, alpha, beta, maximizingPlayer):
         
     # Maximizing player
     if maximizingPlayer:
-        value = -math.inf # V = -infinity
+        best_score = -math.inf # V = -infinity
         column = random.choice(valid_locations)
         
         for col_input in valid_locations:
@@ -263,23 +263,23 @@ def minimax_alpha_beta(board, depth, alpha, beta, maximizingPlayer):
 
             new_score = minimax_alpha_beta(board_copy, depth - 1, alpha, beta, False)[1]
             
-            if new_score > value: # get the highest scoring move
-                value = new_score
+            if new_score > best_score: # get the highest scoring move
+                best_score = new_score
                 column = col_input
                 
-            alpha = max(alpha, value)
+            alpha = max(alpha, best_score)
             
             if alpha >= beta:
-                break # prune node
+                break
 
-        #     print(f'MAX explore:\tDepth: {depth}\tColumn: {column}\tValue: {value}')
+        #     print(f'MAX explore:\tDepth: {depth}\tColumn: {column}\tbest_score: {best_score}')
 
         # print("\n")
                 
-        return column, value
+        return column, best_score
         
     else: # Minimizing player
-        value = math.inf # V = inifinity
+        best_score = math.inf # V = inifinity
         column = random.choice(valid_locations)
         
         for col_input in valid_locations:
@@ -289,20 +289,20 @@ def minimax_alpha_beta(board, depth, alpha, beta, maximizingPlayer):
 
             new_score = minimax_alpha_beta(board_copy, depth - 1, alpha, beta, True)[1]
             
-            if new_score < value: # get the lowest scoring move
-                value = new_score
+            if new_score < best_score: # get the lowest scoring move
+                best_score = new_score
                 column = col_input
                 
-            beta = min(beta, value)
+            beta = min(beta, best_score)
             
             if alpha >= beta:
-                break # prune node
+                break
 
-            # print(f'MIN explore:\tDepth: {depth}\tColumn: {column}\tValue: {value}')
+            # print(f'MIN explore:\tDepth: {depth}\tColumn: {column}\tbest_score: {best_score}')
 
         # print("\n")
         
-        return column, value
+        return column, best_score
 
 ''' (AI) Function for AI to determine whether a location is valid '''
 def get_valid_locations(board):
