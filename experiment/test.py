@@ -12,6 +12,8 @@ COLUMN_COUNT = 7
 WINDOW_LENGTH = 4
 SQUARE_SIZE = 100 # Size of squares in window is 100 pixels
 RADIUS = int(SQUARE_SIZE / 2 - 5) # radius for circles/player pieces
+AB_DEPTH = 4
+MM_DEPTH = 4
 
 PLAYER = 0
 AI = 1
@@ -189,6 +191,7 @@ def minimax(board, depth, maximizingPlayer):
     is_terminal = is_terminal_node(board)
 
     if depth == 0 or is_terminal:
+        minimax.counter += 1
         if is_terminal: # when a terminal node is reached
             if winning_move(board, YELLOW_PIECE):
                 return (None, 100000)
@@ -215,6 +218,8 @@ def minimax(board, depth, maximizingPlayer):
                 best_score = new_score
                 column = col_input
 
+            # print(f'MAX explore:\tDepth: {depth}\tColumn: {column}\tBest Score: {best_score}')
+
         return column, best_score
         
     else: # Minimizing player
@@ -232,14 +237,17 @@ def minimax(board, depth, maximizingPlayer):
                 best_score = new_score
                 column = col_input
 
-        return column, best_score
+            # print(f'MIN explore:\tDepth: {depth}\tColumn: {column}\tBest Score: {best_score}')
 
+        return column, best_score
+    
 ''' (AI) Function that performs Minimax algorithm with Alpha-Beta Pruning '''
-def minimax_alpha_beta(board, depth, alpha, beta, maximizingPlayer):
+def red_alpha_beta(board, depth, alpha, beta, maximizingPlayer):
     valid_locations = get_valid_locations(board)
     is_terminal = is_terminal_node(board)
     
     if depth == 0 or is_terminal:
+        red_alpha_beta.counter += 1
         if is_terminal: # when a terminal node is reached
             if winning_move(board, YELLOW_PIECE):
                 return (None, 100000)
@@ -253,7 +261,8 @@ def minimax_alpha_beta(board, depth, alpha, beta, maximizingPlayer):
         
     # Maximizing player
     if maximizingPlayer:
-        best_score = -math.inf # V = -infinity
+        # best_score = -math.inf # V = -infinity
+        best_score = alpha
         column = random.choice(valid_locations)
         
         for col_input in valid_locations:
@@ -261,7 +270,7 @@ def minimax_alpha_beta(board, depth, alpha, beta, maximizingPlayer):
             board_copy = board.copy()
             place_piece(board_copy, row, col_input, YELLOW_PIECE)
 
-            new_score = minimax_alpha_beta(board_copy, depth - 1, alpha, beta, False)[1]
+            new_score = red_alpha_beta(board_copy, depth - 1, alpha, beta, False)[1]
             
             if new_score > best_score: # get the highest scoring move
                 best_score = new_score
@@ -272,14 +281,13 @@ def minimax_alpha_beta(board, depth, alpha, beta, maximizingPlayer):
             if alpha >= beta:
                 break
 
-        #     print(f'MAX explore:\tDepth: {depth}\tColumn: {column}\tbest_score: {best_score}')
-
-        # print("\n")
-                
+            # print(f'MAX explore:\tDepth: {depth}\tColumn: {column}\tBest Score: {best_score}')
+             
         return column, best_score
         
     else: # Minimizing player
-        best_score = math.inf # V = inifinity
+        # best_score = math.inf # V = inifinity
+        best_score = beta
         column = random.choice(valid_locations)
         
         for col_input in valid_locations:
@@ -287,7 +295,7 @@ def minimax_alpha_beta(board, depth, alpha, beta, maximizingPlayer):
             board_copy = board.copy()
             place_piece(board_copy, row, col_input, RED_PIECE)
 
-            new_score = minimax_alpha_beta(board_copy, depth - 1, alpha, beta, True)[1]
+            new_score = red_alpha_beta(board_copy, depth - 1, alpha, beta, True)[1]
             
             if new_score < best_score: # get the lowest scoring move
                 best_score = new_score
@@ -298,11 +306,118 @@ def minimax_alpha_beta(board, depth, alpha, beta, maximizingPlayer):
             if alpha >= beta:
                 break
 
-            # print(f'MIN explore:\tDepth: {depth}\tColumn: {column}\tbest_score: {best_score}')
-
-        # print("\n")
+            # print(f'MIN explore:\tDepth: {depth}\tColumn: {column}\tBest Score: {best_score}')
         
         return column, best_score
+
+''' (AI) Function that performs Minimax algorithm with Alpha-Beta Pruning '''
+def yellow_alpha_beta(board, depth, alpha, beta, maximizingPlayer):
+    valid_locations = get_valid_locations(board)
+    is_terminal = is_terminal_node(board)
+    
+    if depth == 0 or is_terminal:
+        yellow_alpha_beta.counter += 1
+        if is_terminal: # when a terminal node is reached
+            if winning_move(board, YELLOW_PIECE):
+                return (None, 100000)
+            elif winning_move(board, RED_PIECE):
+                return (None, -100000)
+            else: # game is over
+                return (None, 0)
+            
+        else: # depth == 0
+            return (None, score_position(board, YELLOW_PIECE))
+        
+    # Maximizing player
+    if maximizingPlayer:
+        # best_score = -math.inf # V = -infinity
+        best_score = alpha
+        column = random.choice(valid_locations)
+        
+        for col_input in valid_locations:
+            row = get_next_open_row(board, col_input)
+            board_copy = board.copy()
+            place_piece(board_copy, row, col_input, YELLOW_PIECE)
+
+            new_score = yellow_alpha_beta(board_copy, depth - 1, alpha, beta, False)[1]
+            
+            if new_score > best_score: # get the highest scoring move
+                best_score = new_score
+                column = col_input
+                
+            alpha = max(alpha, best_score)
+            
+            if alpha >= beta:
+                break
+
+            # print(f'MAX explore:\tDepth: {depth}\tColumn: {column}\tBest Score: {best_score}')
+             
+        return column, best_score
+        
+    else: # Minimizing player
+        # best_score = math.inf # V = inifinity
+        best_score = beta
+        column = random.choice(valid_locations)
+        
+        for col_input in valid_locations:
+            row = get_next_open_row(board, col_input)
+            board_copy = board.copy()
+            place_piece(board_copy, row, col_input, RED_PIECE)
+
+            new_score = yellow_alpha_beta(board_copy, depth - 1, alpha, beta, True)[1]
+            
+            if new_score < best_score: # get the lowest scoring move
+                best_score = new_score
+                column = col_input
+                
+            beta = min(beta, best_score)
+            
+            if alpha >= beta:
+                break
+
+            # print(f'MIN explore:\tDepth: {depth}\tColumn: {column}\tBest Score: {best_score}')
+        
+        return column, best_score
+
+''' (AI) Function that performs Principal Variation Search '''
+def principal_variation_search(board, depth, alpha, beta):
+    valid_locations = get_valid_locations(board)
+    is_terminal = is_terminal_node(board)
+
+    if depth == 0 or is_terminal:
+        principal_variation_search.counter += 1
+        if is_terminal: # when a terminal node is reached
+            if winning_move(board, YELLOW_PIECE):
+                return 100000
+            elif winning_move(board, RED_PIECE):
+                return -100000
+            else: # game is over
+                return 0
+            
+        else: # depth == 0
+            return score_position(board, YELLOW_PIECE)
+    
+    best_score = -math.inf
+
+    for col_input in valid_locations:
+        row = get_next_open_row(board, col_input)
+        board_copy = board.copy()
+        place_piece(board_copy, row, col_input, YELLOW_PIECE)
+
+        score = -principal_variation_search(board, depth - 1, -beta, -alpha)
+
+        if alpha < score < beta:
+                score = -principal_variation_search(board, depth - 1, -beta, -score)
+
+        best_score = max(best_score, score)
+        alpha = max(alpha, score)
+
+        if alpha >= beta:
+            return alpha
+        
+        beta = alpha + 1
+
+    return best_score
 
 ''' (AI) Function for AI to determine whether a location is valid '''
 def get_valid_locations(board):
@@ -356,6 +471,10 @@ def draw_pygame_board(board):
     pygame.display.Info().current_w
 
 ''' Main '''
+minimax.counter = 0
+red_alpha_beta.counter = 0
+yellow_alpha_beta.counter = 0
+principal_variation_search.counter = 0
 print_terminal_menu()
 menu_input = int(input("\nSelect an option (1-4): "))
 
@@ -409,8 +528,9 @@ while not game_over:
         # Minimax turn
         elif menu_input == 2:
             if turn == PLAYER:
-                col_input, minimax_score = minimax(board, 4, True) # depth 5 starts to become slow
+                col_input, minimax_score = minimax(board, MM_DEPTH, True) # depth 5 starts to become slow
                 print(f'\nRED turn:\tColumn = {col_input}\tScore = {minimax_score}')
+                print(f'Minimax calls: {minimax.counter}')
 
                 if is_valid_location(board, col_input):
                     row = get_next_open_row(board, col_input)
@@ -435,8 +555,9 @@ while not game_over:
         # Alpha-Beta turn
         elif menu_input == 3:
             if turn == PLAYER:
-                col_input, minimax_score = minimax_alpha_beta(board, 5, -math.inf, math.inf, True) # depth 7 starts to become slow
-                print(f'\nRED turn:\tColumn = {col_input}\tScore = {minimax_score}')
+                col_input, ab_score = red_alpha_beta(board, AB_DEPTH, -math.inf, math.inf, True) # depth 7 starts to become slow
+                print(f'\nRED turn:\tColumn = {col_input}\tScore = {ab_score}')
+                print(f'RED Alpha-Beta calls: {red_alpha_beta.counter}')
 
                 if is_valid_location(board, col_input):
                     row = get_next_open_row(board, col_input)
@@ -479,7 +600,7 @@ while not game_over:
                 if turn == PLAYER:
                     posx = event.pos[0]
                     col_input = int(math.floor(posx / SQUARE_SIZE)) # divide to get numbers 0-7
-                    print(f'\nRED turn:\tColumn = {col_input}\tScore = {minimax_score}')
+                    print(f'\nRED turn:\tColumn = {col_input}')
 
                     if is_valid_location(board, col_input):
                         row = get_next_open_row(board, col_input)
@@ -503,8 +624,12 @@ while not game_over:
 
     # Alpha-Beta turn
     if turn == AI and not game_over:
-        col_input, minimax_score = minimax_alpha_beta(board, 5, -math.inf, math.inf, True) # depth 7 starts to become slow
-        print(f'\nYELLOW turn:\tColumn = {col_input}\tScore = {minimax_score}')
+        pvs_score = principal_variation_search(board, AB_DEPTH, -math.inf, math.inf)
+        col_input, ab_score = yellow_alpha_beta(board, AB_DEPTH, -math.inf, math.inf, True) # depth 7 starts to become slow
+        print(f'\nPVS score:\t{pvs_score}')
+        print(f'PVS calls:\t{principal_variation_search.counter}')
+        print(f'\nYELLOW turn:\tColumn = {col_input}\tScore = {ab_score}')
+        print(f'YELLOW Alpha-Beta calls: {yellow_alpha_beta.counter}')
 
         if is_valid_location(board, col_input):
             row = get_next_open_row(board, col_input)
