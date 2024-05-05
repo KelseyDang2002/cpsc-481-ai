@@ -160,17 +160,17 @@ def yellow_evaluate_window(window, piece):
     
     # Score
     if window.count(piece) == 4: # if window contains 4 pieces of same color = win
-        score += 10
+        score += 100
     elif window.count(piece) == 3 and window.count(EMPTY) == 1: # if window has 3 pieces of same color
-        score += 2
+        score += 20
     elif window.count(piece) == 2 and window.count(EMPTY) == 2: # if window has 2 pieces of same color
-        score += 1
+        score += 10
         
     # Opponent score
     if window.count(opponent_piece) == 3 and window.count(EMPTY) == 1: # opponent window has 3 pieces
-        score -= 8
+        score -= 80
     elif window.count(opponent_piece) == 2 and window.count(EMPTY) == 2: # opponent window has 2 pieces
-        score -= 2
+        score -= 20
         
     return score
 
@@ -181,7 +181,7 @@ def yellow_score_position(board, piece):
     # More pieces in center column = more possibilities for 4-in-a-rows = higher score
     center_array = [int(i) for i in list(board[:, COLUMN_COUNT // 2])] # COLUMN_COUNT // 2 = 4 = center column
     center_count = center_array.count(piece)
-    score += center_count * 3
+    score += center_count * 5
 
     # Score based on indivudual board positions
     # Score = maximum possible 4-in-a-rows from this position
@@ -191,26 +191,26 @@ def yellow_score_position(board, piece):
     # [5. 8. 11. 13. 11. 8. 5.]
     # [4. 6. 8. 10. 8. 6. 4.]
     # [3. 4. 5. 7. 5. 4. 3.]
-    for r in range(ROW_COUNT):
-        for c in range(COLUMN_COUNT):
-            if board[2][3] or board[3][3]:
-                score += 13
-            elif board[2][2] or board[3][2] or board[2][4] or board[3][4]:
-                score += 11
-            elif board[1][3] or board[4][3]:
-                score += 10
-            elif board[2][1] or board[3][1] or board[1][2] or board[4][2] or board[1][4] or board[4][4] or board[2][5] or board[3][5]:
-                score += 8
-            elif board[0][3] or board[5][3]:
-                score += 7
-            elif board[1][1] or board[4][1] or board[1][5] or board[4][5]:
-                score += 6
-            elif board[2][0] or board[3][0] or board[0][2] or board[5][2] or board[0][4] or board[5][4] or board[2][6] or board[3][6]:
-                score += 5
-            elif board[1][0] or board[4][0] or board[0][1] or board[5][1] or board[0][5] or board[5][5] or board[1][6] or board[4][6]:
-                score += 4
-            else: # board[0][0] or board[5][0] or board[0][6] or board[5][6]
-                score += 3
+    # for r in range(ROW_COUNT):
+    #     for c in range(COLUMN_COUNT):
+    #         if board[2][3] or board[3][3]:
+    #             score += 13
+    #         elif board[2][2] or board[3][2] or board[2][4] or board[3][4]:
+    #             score += 11
+    #         elif board[1][3] or board[4][3]:
+    #             score += 10
+    #         elif board[2][1] or board[3][1] or board[1][2] or board[4][2] or board[1][4] or board[4][4] or board[2][5] or board[3][5]:
+    #             score += 8
+    #         elif board[0][3] or board[5][3]:
+    #             score += 7
+    #         elif board[1][1] or board[4][1] or board[1][5] or board[4][5]:
+    #             score += 6
+    #         elif board[2][0] or board[3][0] or board[0][2] or board[5][2] or board[0][4] or board[5][4] or board[2][6] or board[3][6]:
+    #             score += 5
+    #         elif board[1][0] or board[4][0] or board[0][1] or board[5][1] or board[0][5] or board[5][5] or board[1][6] or board[4][6]:
+    #             score += 4
+    #         else: # board[0][0] or board[5][0] or board[0][6] or board[5][6]
+    #             score += 3
     
     # Horizontal score
     # AI will prioritize getting horizontal 4-in-a-rows
