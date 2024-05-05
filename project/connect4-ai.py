@@ -12,13 +12,15 @@ COLUMN_COUNT = 7
 WINDOW_LENGTH = 4
 SQUARE_SIZE = 100 # Size of squares in window is 100 pixels
 RADIUS = int(SQUARE_SIZE / 2 - 5) # radius for circles/player pieces
+MM_DEPTH = 4
+AB_DEPTH = 4
 
 PLAYER = 0
 AI = 1
 
 EMPTY = 0
-PLAYER_PIECE = 1
-AI_PIECE = 2
+RED_PIECE = 1
+YELLOW_PIECE = 2
 
 # define game colors
 COLOR_BLUE = (0, 0, 255)
@@ -87,10 +89,10 @@ def winning_move(board, piece):
 ''' (AI) Function that evaulates windows of size 4 ''' 
 def evaluate_window(window, piece):
     score = 0
-    opponent_piece = PLAYER_PIECE
+    opponent_piece = RED_PIECE
     
-    if piece == PLAYER_PIECE:
-        opponent_piece = AI_PIECE
+    if piece == RED_PIECE:
+        opponent_piece = YELLOW_PIECE
     
     # Score
     if window.count(piece) == 4: # if window contains 4 pieces of same color = win
@@ -116,6 +118,35 @@ def score_position(board, piece):
     center_array = [int(i) for i in list(board[:, COLUMN_COUNT // 2])] # COLUMN_COUNT // 2 = 4 = center column
     center_count = center_array.count(piece)
     score += center_count * 2
+
+    # Score based on indivudual board positions
+    # Score = maximum possible 4-in-a-rows from this position
+    # [3. 4. 5. 7. 5. 4. 3.]
+    # [4. 6. 8. 10. 8. 6. 4.]
+    # [5. 8. 11. 13. 11. 8. 5.]
+    # [5. 8. 11. 13. 11. 8. 5.]
+    # [4. 6. 8. 10. 8. 6. 4.]
+    # [3. 4. 5. 7. 5. 4. 3.]
+    # for r in range(ROW_COUNT):
+    #     for c in range(COLUMN_COUNT):
+    #         if board[2][3] or board[3][3]:
+    #             score += 13
+    #         elif board[2][2] or board[3][2] or board[2][4] or board[3][4]:
+    #             score += 11
+    #         elif board[1][3] or board[4][3]:
+    #             score += 10
+    #         elif board[2][1] or board[3][1] or board[1][2] or board[4][2] or board[1][4] or board[4][4] or board[2][5] or board[3][5]:
+    #             score += 8
+    #         elif board[0][3] or board[5][3]:
+    #             score += 7
+    #         elif board[1][1] or board[4][1] or board[1][5] or board[4][5]:
+    #             score += 6
+    #         elif board[2][0] or board[3][0] or board[0][2] or board[5][2] or board[0][4] or board[5][4] or board[2][6] or board[3][6]:
+    #             score += 5
+    #         elif board[1][0] or board[4][0] or board[0][1] or board[5][1] or board[0][5] or board[5][5] or board[1][6] or board[4][6]:
+    #             score += 4
+    #         else: # board[0][0] or board[5][0] or board[0][6] or board[5][6]
+    #             score += 3
     
     # Horizontal score
     # AI will prioritize getting horizontal 4-in-a-rows
@@ -146,42 +177,13 @@ def score_position(board, piece):
         for c in range(COLUMN_COUNT - 3):
             window = [board[r + 3 - i][c + i] for i in range(WINDOW_LENGTH)] # start with r index 3 and c index i
             score += evaluate_window(window, piece)
-            
-    # Score based on indivudual board positions
-    # Score = maximum possible 4-in-a-rows from this position
-    # [3. 4. 5. 7. 5. 4. 3.]
-    # [4. 6. 8. 9. 8. 6. 4.]
-    # [5. 8. 11. 13. 11. 8. 5.]
-    # [5. 8. 11. 13. 11. 8. 5.]
-    # [4. 6. 8. 9. 8. 6. 4.]
-    # [3. 4. 5. 7. 5. 4. 3.]
-    for r in range(ROW_COUNT):
-        for c in range(COLUMN_COUNT):
-            if board[2][3] or board[3][3]:
-                score += 13
-            elif board[2][2] or board[3][2] or board[2][4] or board[3][4]:
-                score += 11
-            elif board[1][3] or board[4][3]:
-                score += 9
-            elif board[2][1] or board[3][1] or board[1][2] or board[4][2] or board[1][4] or board[4][4] or board[2][5] or board[3][5]:
-                score += 8
-            elif board[0][3] or board[5][3]:
-                score += 7
-            elif board[1][1] or board[4][1] or board[1][5] or board[4][5]:
-                score += 6
-            elif board[2][0] or board[3][0] or board[0][2] or board[5][2] or board[0][4] or board[5][4] or board[2][6] or board[3][6]:
-                score += 5
-            elif board[1][0] or board[4][0] or board[0][1] or board[5][1] or board[0][5] or board[5][5] or board[1][6] or board[4][6]:
-                score += 4
-            else: # board[0][0] or board[5][0] or board[0][6] or board[5][6]
-                score += 3
                 
-    print(f'Current score = {score}')
+    # print(f'Current score = {score}')
     return score
 
 ''' (AI) Function that returns winning conditions or when there's no more valid locations '''
 def is_terminal_node(board):
-    return winning_move(board, PLAYER_PIECE) or winning_move(board, AI_PIECE) or len(get_valid_locations(board)) == 0
+    return winning_move(board, RED_PIECE) or winning_move(board, YELLOW_PIECE) or len(get_valid_locations(board)) == 0
 
 ''' (AI) Function that performs Minimax algorithm '''
 def minimax(board, depth, maximizingPlayer):
@@ -189,114 +191,233 @@ def minimax(board, depth, maximizingPlayer):
     is_terminal = is_terminal_node(board)
 
     if depth == 0 or is_terminal:
+        minimax.counter += 1
         if is_terminal: # when a terminal node is reached
-            if winning_move(board, AI_PIECE):
+            if winning_move(board, YELLOW_PIECE):
                 return (None, 100000)
-            elif winning_move(board, PLAYER_PIECE):
+            elif winning_move(board, RED_PIECE):
                 return (None, -100000)
             else: # game is over
                 return (None, 0)
             
         else: # depth == 0
-            return (None, score_position(board, AI_PIECE))
+            return (None, score_position(board, YELLOW_PIECE))
         
     if maximizingPlayer:
-        value = -math.inf # V = -infinity
+        best_score = -math.inf # V = -infinity
         column = random.choice(valid_locations)
 
         for col_input in valid_locations:
             row = get_next_open_row(board, col_input)
             board_copy = board.copy()
-            place_piece(board_copy, row, col_input, AI_PIECE)
+            place_piece(board_copy, row, col_input, YELLOW_PIECE)
 
             new_score = minimax(board_copy, depth - 1, False)[1]
 
-            if new_score > value:
-                value = new_score
+            if new_score > best_score:
+                best_score = new_score
                 column = col_input
 
-        return column, value
+            # print(f'MAX explore:\tDepth: {depth}\tColumn: {column}\tBest Score: {best_score}')
+
+        return column, best_score
         
     else: # Minimizing player
-        value = math.inf # V = inifinity
+        best_score = math.inf # V = inifinity
         column = random.choice(valid_locations)
 
         for col_input in valid_locations:
             row = get_next_open_row(board, col_input)
             board_copy = board.copy()
-            place_piece(board_copy, row, col_input, PLAYER_PIECE)
+            place_piece(board_copy, row, col_input, RED_PIECE)
 
             new_score = minimax(board_copy, depth - 1, True)[1]
 
-            if new_score < value:
-                value = new_score
+            if new_score < best_score:
+                best_score = new_score
                 column = col_input
 
-        return column, value
+            # print(f'MIN explore:\tDepth: {depth}\tColumn: {column}\tBest Score: {best_score}')
 
+        return column, best_score
+    
 ''' (AI) Function that performs Minimax algorithm with Alpha-Beta Pruning '''
-def minimax_alpha_beta(board, depth, alpha, beta, maximizingPlayer):
+def red_alpha_beta(board, depth, alpha, beta, maximizingPlayer):
     valid_locations = get_valid_locations(board)
     is_terminal = is_terminal_node(board)
     
     if depth == 0 or is_terminal:
+        red_alpha_beta.counter += 1
         if is_terminal: # when a terminal node is reached
-            if winning_move(board, AI_PIECE):
+            if winning_move(board, YELLOW_PIECE):
                 return (None, 100000)
-            elif winning_move(board, PLAYER_PIECE):
+            elif winning_move(board, RED_PIECE):
                 return (None, -100000)
             else: # game is over
                 return (None, 0)
             
         else: # depth == 0
-            return (None, score_position(board, AI_PIECE))
+            return (None, score_position(board, YELLOW_PIECE))
         
     # Maximizing player
     if maximizingPlayer:
-        value = -math.inf # V = -infinity
+        # best_score = -math.inf # V = -infinity
+        best_score = alpha
         column = random.choice(valid_locations)
         
         for col_input in valid_locations:
             row = get_next_open_row(board, col_input)
             board_copy = board.copy()
-            place_piece(board_copy, row, col_input, AI_PIECE)
+            place_piece(board_copy, row, col_input, YELLOW_PIECE)
 
-            new_score = minimax_alpha_beta(board_copy, depth - 1, alpha, beta, False)[1]
+            new_score = red_alpha_beta(board_copy, depth - 1, alpha, beta, False)[1]
             
-            if new_score > value: # get the highest scoring move
-                value = new_score
+            if new_score > best_score: # get the highest scoring move
+                best_score = new_score
                 column = col_input
                 
-            alpha = max(alpha, value)
+            alpha = max(alpha, best_score)
             
             if alpha >= beta:
                 break
-            
-        print(f'Max: Depth = {depth}\tColumn = {column}\tValue = {value}')
-        return column, value
+
+            # print(f'MAX explore:\tDepth: {depth}\tColumn: {column}\tBest Score: {best_score}')
+             
+        return column, best_score
         
     else: # Minimizing player
-        value = math.inf # V = inifinity
+        # best_score = math.inf # V = inifinity
+        best_score = beta
         column = random.choice(valid_locations)
         
         for col_input in valid_locations:
             row = get_next_open_row(board, col_input)
             board_copy = board.copy()
-            place_piece(board_copy, row, col_input, PLAYER_PIECE)
+            place_piece(board_copy, row, col_input, RED_PIECE)
 
-            new_score = minimax_alpha_beta(board_copy, depth - 1, alpha, beta, True)[1]
+            new_score = red_alpha_beta(board_copy, depth - 1, alpha, beta, True)[1]
             
-            if new_score < value: # get the lowest scoring move
-                value = new_score
+            if new_score < best_score: # get the lowest scoring move
+                best_score = new_score
                 column = col_input
                 
-            beta = min(beta, value)
+            beta = min(beta, best_score)
             
             if alpha >= beta:
                 break
+
+            # print(f'MIN explore:\tDepth: {depth}\tColumn: {column}\tBest Score: {best_score}')
+        
+        return column, best_score
+
+''' (AI) Function that performs Minimax algorithm with Alpha-Beta Pruning '''
+def yellow_alpha_beta(board, depth, alpha, beta, maximizingPlayer):
+    valid_locations = get_valid_locations(board)
+    is_terminal = is_terminal_node(board)
+    
+    if depth == 0 or is_terminal:
+        yellow_alpha_beta.counter += 1
+        if is_terminal: # when a terminal node is reached
+            if winning_move(board, YELLOW_PIECE):
+                return (None, 100000)
+            elif winning_move(board, RED_PIECE):
+                return (None, -100000)
+            else: # game is over
+                return (None, 0)
             
-        print(f'Min: Depth = {depth}\tColumn = {column}\tValue = {value}')
-        return column, value
+        else: # depth == 0
+            return (None, score_position(board, YELLOW_PIECE))
+        
+    # Maximizing player
+    if maximizingPlayer:
+        # best_score = -math.inf # V = -infinity
+        best_score = alpha
+        column = random.choice(valid_locations)
+        
+        for col_input in valid_locations:
+            row = get_next_open_row(board, col_input)
+            board_copy = board.copy()
+            place_piece(board_copy, row, col_input, YELLOW_PIECE)
+
+            new_score = yellow_alpha_beta(board_copy, depth - 1, alpha, beta, False)[1]
+            
+            if new_score > best_score: # get the highest scoring move
+                best_score = new_score
+                column = col_input
+                
+            alpha = max(alpha, best_score)
+            
+            if alpha >= beta:
+                break
+
+            # print(f'MAX explore:\tDepth: {depth}\tColumn: {column}\tBest Score: {best_score}')
+             
+        return column, best_score
+        
+    else: # Minimizing player
+        # best_score = math.inf # V = inifinity
+        best_score = beta
+        column = random.choice(valid_locations)
+        
+        for col_input in valid_locations:
+            row = get_next_open_row(board, col_input)
+            board_copy = board.copy()
+            place_piece(board_copy, row, col_input, RED_PIECE)
+
+            new_score = yellow_alpha_beta(board_copy, depth - 1, alpha, beta, True)[1]
+            
+            if new_score < best_score: # get the lowest scoring move
+                best_score = new_score
+                column = col_input
+                
+            beta = min(beta, best_score)
+            
+            if alpha >= beta:
+                break
+
+            # print(f'MIN explore:\tDepth: {depth}\tColumn: {column}\tBest Score: {best_score}')
+        
+        return column, best_score
+
+''' (AI) Function that performs Principal Variation Search '''
+def principal_variation_search(board, depth, alpha, beta):
+    valid_locations = get_valid_locations(board)
+    is_terminal = is_terminal_node(board)
+
+    if depth == 0 or is_terminal:
+        principal_variation_search.counter += 1
+        if is_terminal: # when a terminal node is reached
+            if winning_move(board, YELLOW_PIECE):
+                return 100000
+            elif winning_move(board, RED_PIECE):
+                return -100000
+            else: # game is over
+                return 0
+            
+        else: # depth == 0
+            return score_position(board, YELLOW_PIECE)
+    
+    best_score = -math.inf
+
+    for col_input in valid_locations:
+        row = get_next_open_row(board, col_input)
+        board_copy = board.copy()
+        place_piece(board_copy, row, col_input, YELLOW_PIECE)
+
+        score = -principal_variation_search(board, depth - 1, -beta, -alpha)
+
+        if alpha < score < beta:
+                score = -principal_variation_search(board, depth - 1, -beta, -score)
+
+        best_score = max(best_score, score)
+        alpha = max(alpha, score)
+
+        if alpha >= beta:
+            return alpha
+        
+        beta = alpha + 1
+
+    return best_score
 
 ''' (AI) Function for AI to determine whether a location is valid '''
 def get_valid_locations(board):
@@ -326,7 +447,7 @@ def pick_best_move(board, piece):
             
     pygame.time.wait(500)
 
-    return best_col
+    return best_col, best_score
 
 ''' Function to draw the pygame board GUI '''    
 def draw_pygame_board(board):
@@ -338,11 +459,11 @@ def draw_pygame_board(board):
 
     for c in range(COLUMN_COUNT):
         for r in range(ROW_COUNT):
-            if board[r][c] == PLAYER_PIECE:
+            if board[r][c] == RED_PIECE:
                 # draws the red player pieces
                 pygame.draw.circle(screen, COLOR_RED, (int(c * SQUARE_SIZE + SQUARE_SIZE / 2), window_height - int(r * SQUARE_SIZE + SQUARE_SIZE / 2)), RADIUS)
 
-            elif board[r][c] == AI_PIECE:
+            elif board[r][c] == YELLOW_PIECE:
                 # draws the yellow player pieces
                 pygame.draw.circle(screen, COLOR_YELLOW, (int(c * SQUARE_SIZE + SQUARE_SIZE / 2), window_height - int(r * SQUARE_SIZE + SQUARE_SIZE / 2)), RADIUS)
 
@@ -350,6 +471,13 @@ def draw_pygame_board(board):
     pygame.display.Info().current_w
 
 ''' Main '''
+minimax.counter = 0
+red_alpha_beta.counter = 0
+yellow_alpha_beta.counter = 0
+principal_variation_search.counter = 0
+
+pvs_list = []
+
 print_terminal_menu()
 menu_input = int(input("\nSelect an option (1-4): "))
 
@@ -377,15 +505,16 @@ while not game_over:
         # Basic AI turn
         if menu_input == 1:
             if turn == PLAYER:
-                col_input = pick_best_move(board, PLAYER_PIECE) # basic AI bot
+                col_input, pbm_score = pick_best_move(board, RED_PIECE) # basic AI bot
+                print(f'\nRED turn:\tColumn = {col_input}\tScore = {pbm_score}')
 
                 if is_valid_location(board, col_input):
                     row = get_next_open_row(board, col_input)
-                    place_piece(board, row, col_input, PLAYER_PIECE)
+                    place_piece(board, row, col_input, RED_PIECE)
 
-                    if winning_move(board, PLAYER_PIECE):
+                    if winning_move(board, RED_PIECE):
                         print("\nRED WINS!!!")
-                        label = gamefont.render("RED WINS", PLAYER_PIECE, COLOR_RED) # create player win text
+                        label = gamefont.render("RED WINS", RED_PIECE, COLOR_RED) # create player win text
                         screen.blit(label, (60, 10))
                         game_over = True
                         
@@ -402,15 +531,17 @@ while not game_over:
         # Minimax turn
         elif menu_input == 2:
             if turn == PLAYER:
-                col_input, minimax_score = minimax(board, 4, True) # depth 5 starts to become slow
+                col_input, minimax_score = minimax(board, MM_DEPTH, True) # depth 5 starts to become slow
+                print(f'\nRED turn:\tColumn = {col_input}\tScore = {minimax_score}')
+                print(f'Minimax calls: {minimax.counter}')
 
                 if is_valid_location(board, col_input):
                     row = get_next_open_row(board, col_input)
-                    place_piece(board, row, col_input, PLAYER_PIECE)
+                    place_piece(board, row, col_input, RED_PIECE)
 
-                    if winning_move(board, PLAYER_PIECE):
+                    if winning_move(board, RED_PIECE):
                         print("\nRED WINS!!!")
-                        label = gamefont.render("RED WINS", PLAYER_PIECE, COLOR_RED) # create player win text
+                        label = gamefont.render("RED WINS", RED_PIECE, COLOR_RED) # create player win text
                         screen.blit(label, (60, 10))
                         game_over = True
                         
@@ -427,15 +558,17 @@ while not game_over:
         # Alpha-Beta turn
         elif menu_input == 3:
             if turn == PLAYER:
-                col_input, minimax_score = minimax_alpha_beta(board, 4, -math.inf, math.inf, True) # depth 7 starts to become slow
+                col_input, ab_score = red_alpha_beta(board, AB_DEPTH, -math.inf, math.inf, True) # depth 7 starts to become slow
+                print(f'\nRED turn:\tColumn = {col_input}\tScore = {ab_score}')
+                print(f'RED Alpha-Beta calls: {red_alpha_beta.counter}')
 
                 if is_valid_location(board, col_input):
                     row = get_next_open_row(board, col_input)
-                    place_piece(board, row, col_input, PLAYER_PIECE)
+                    place_piece(board, row, col_input, RED_PIECE)
 
-                    if winning_move(board, PLAYER_PIECE):
+                    if winning_move(board, RED_PIECE):
                         print("\nRED WINS!!!")
-                        label = gamefont.render("RED WINS", PLAYER_PIECE, COLOR_RED) # create player win text
+                        label = gamefont.render("RED WINS", RED_PIECE, COLOR_RED) # create player win text
                         screen.blit(label, (60, 10))
                         game_over = True
                         
@@ -449,6 +582,7 @@ while not game_over:
                     print("\nInvalid move, try again.")
                     turn -= 1
 
+        # Player turn
         elif menu_input == 4:
             if event.type == pygame.MOUSEMOTION:
                 # player piece follows mouse cursor
@@ -469,14 +603,15 @@ while not game_over:
                 if turn == PLAYER:
                     posx = event.pos[0]
                     col_input = int(math.floor(posx / SQUARE_SIZE)) # divide to get numbers 0-7
+                    print(f'\nRED turn:\tColumn = {col_input}')
 
                     if is_valid_location(board, col_input):
                         row = get_next_open_row(board, col_input)
-                        place_piece(board, row, col_input, PLAYER_PIECE)
+                        place_piece(board, row, col_input, RED_PIECE)
 
-                        if winning_move(board, PLAYER_PIECE):
+                        if winning_move(board, RED_PIECE):
                             print("\nRED WINS!!!")
-                            label = gamefont.render("RED WINS", PLAYER_PIECE, COLOR_RED) # create player win text
+                            label = gamefont.render("RED WINS", RED_PIECE, COLOR_RED) # create player win text
                             screen.blit(label, (60, 10))
                             game_over = True
                             
@@ -492,15 +627,21 @@ while not game_over:
 
     # Alpha-Beta turn
     if turn == AI and not game_over:
-        col_input, minimax_score = minimax_alpha_beta(board, 4, -math.inf, math.inf, True) # depth 7 starts to become slow
+        pvs_score = principal_variation_search(board, AB_DEPTH, -math.inf, math.inf)
+        pvs_list.append(pvs_score)
+        col_input, ab_score = yellow_alpha_beta(board, AB_DEPTH, -math.inf, math.inf, True) # depth 7 starts to become slow
+        print(f'\nPVS score:\t{pvs_score}\tPVS list: {pvs_list}')
+        print(f'PVS calls:\t{principal_variation_search.counter}')
+        print(f'\nYELLOW turn:\tColumn = {col_input}\tScore = {ab_score}')
+        print(f'YELLOW Alpha-Beta calls: {yellow_alpha_beta.counter}')
 
         if is_valid_location(board, col_input):
             row = get_next_open_row(board, col_input)
-            place_piece(board, row, col_input, AI_PIECE)
+            place_piece(board, row, col_input, YELLOW_PIECE)
 
-            if winning_move(board, AI_PIECE):
+            if winning_move(board, YELLOW_PIECE):
                 print("\nYELLOW WINS!!!")
-                label = gamefont.render("YELLOW WINS", AI_PIECE, COLOR_YELLOW) # create player win text
+                label = gamefont.render("YELLOW WINS", YELLOW_PIECE, COLOR_YELLOW) # create player win text
                 screen.blit(label, (60, 10))
                 game_over = True
 
