@@ -86,67 +86,36 @@ def winning_move(board, piece):
             if board[r][c] == piece and board[r-1][c+1] == piece and board[r-2][c+2] == piece and board[r-3][c+3] == piece:
                 return True
 
-''' (AI) Function that evaulates windows of size 4 ''' 
+''' (AI) Function that evaluates windows of size 4 for red ''' 
 def evaluate_window(window, piece):
     score = 0
-    opponent_piece = RED_PIECE
+    opponent_piece = YELLOW_PIECE
     
-    if piece == RED_PIECE:
-        opponent_piece = YELLOW_PIECE
+    if piece == YELLOW_PIECE:
+        opponent_piece = RED_PIECE
     
     # Score
     if window.count(piece) == 4: # if window contains 4 pieces of same color = win
-        score += 10
+        score += 100
     elif window.count(piece) == 3 and window.count(EMPTY) == 1: # if window has 3 pieces of same color
-        score += 2
+        score += 5
     elif window.count(piece) == 2 and window.count(EMPTY) == 2: # if window has 2 pieces of same color
-        score += 1
+        score += 2
         
     # Opponent score
     if window.count(opponent_piece) == 3 and window.count(EMPTY) == 1: # opponent window has 3 pieces
-        score -= 8
-    elif window.count(opponent_piece) == 2 and window.count(EMPTY) == 2: # opponent window has 2 pieces
-        score -= 2
+        score -= 4
         
     return score
             
-''' (AI) Function to keep track of the score based on piece positions for the AI '''
+''' (AI) Function to keep track of the score based on piece positions for red '''
 def score_position(board, piece):
     score = 0
     # Center column score
     # More pieces in center column = more possibilities for 4-in-a-rows = higher score
     center_array = [int(i) for i in list(board[:, COLUMN_COUNT // 2])] # COLUMN_COUNT // 2 = 4 = center column
     center_count = center_array.count(piece)
-    score += center_count * 2
-
-    # Score based on indivudual board positions
-    # Score = maximum possible 4-in-a-rows from this position
-    # [3. 4. 5. 7. 5. 4. 3.]
-    # [4. 6. 8. 10. 8. 6. 4.]
-    # [5. 8. 11. 13. 11. 8. 5.]
-    # [5. 8. 11. 13. 11. 8. 5.]
-    # [4. 6. 8. 10. 8. 6. 4.]
-    # [3. 4. 5. 7. 5. 4. 3.]
-    # for r in range(ROW_COUNT):
-    #     for c in range(COLUMN_COUNT):
-    #         if board[2][3] or board[3][3]:
-    #             score += 13
-    #         elif board[2][2] or board[3][2] or board[2][4] or board[3][4]:
-    #             score += 11
-    #         elif board[1][3] or board[4][3]:
-    #             score += 10
-    #         elif board[2][1] or board[3][1] or board[1][2] or board[4][2] or board[1][4] or board[4][4] or board[2][5] or board[3][5]:
-    #             score += 8
-    #         elif board[0][3] or board[5][3]:
-    #             score += 7
-    #         elif board[1][1] or board[4][1] or board[1][5] or board[4][5]:
-    #             score += 6
-    #         elif board[2][0] or board[3][0] or board[0][2] or board[5][2] or board[0][4] or board[5][4] or board[2][6] or board[3][6]:
-    #             score += 5
-    #         elif board[1][0] or board[4][0] or board[0][1] or board[5][1] or board[0][5] or board[5][5] or board[1][6] or board[4][6]:
-    #             score += 4
-    #         else: # board[0][0] or board[5][0] or board[0][6] or board[5][6]
-    #             score += 3
+    score += center_count * 3
     
     # Horizontal score
     # AI will prioritize getting horizontal 4-in-a-rows
@@ -181,6 +150,100 @@ def score_position(board, piece):
     # print(f'Current score = {score}')
     return score
 
+''' (AI) Function that evaluates windows of size 4 for yellow ''' 
+def yellow_evaluate_window(window, piece):
+    score = 0
+    opponent_piece = RED_PIECE
+    
+    if piece == RED_PIECE:
+        opponent_piece = YELLOW_PIECE
+    
+    # Score
+    if window.count(piece) == 4: # if window contains 4 pieces of same color = win
+        score += 10
+    elif window.count(piece) == 3 and window.count(EMPTY) == 1: # if window has 3 pieces of same color
+        score += 2
+    elif window.count(piece) == 2 and window.count(EMPTY) == 2: # if window has 2 pieces of same color
+        score += 1
+        
+    # Opponent score
+    if window.count(opponent_piece) == 3 and window.count(EMPTY) == 1: # opponent window has 3 pieces
+        score -= 8
+    elif window.count(opponent_piece) == 2 and window.count(EMPTY) == 2: # opponent window has 2 pieces
+        score -= 2
+        
+    return score
+
+''' (AI) Function to keep track of the score based on piece positions for yellow '''
+def yellow_score_position(board, piece):
+    score = 0
+    # Center column score
+    # More pieces in center column = more possibilities for 4-in-a-rows = higher score
+    center_array = [int(i) for i in list(board[:, COLUMN_COUNT // 2])] # COLUMN_COUNT // 2 = 4 = center column
+    center_count = center_array.count(piece)
+    score += center_count * 3
+
+    # Score based on indivudual board positions
+    # Score = maximum possible 4-in-a-rows from this position
+    # [3. 4. 5. 7. 5. 4. 3.]
+    # [4. 6. 8. 10. 8. 6. 4.]
+    # [5. 8. 11. 13. 11. 8. 5.]
+    # [5. 8. 11. 13. 11. 8. 5.]
+    # [4. 6. 8. 10. 8. 6. 4.]
+    # [3. 4. 5. 7. 5. 4. 3.]
+    for r in range(ROW_COUNT):
+        for c in range(COLUMN_COUNT):
+            if board[2][3] or board[3][3]:
+                score += 13
+            elif board[2][2] or board[3][2] or board[2][4] or board[3][4]:
+                score += 11
+            elif board[1][3] or board[4][3]:
+                score += 10
+            elif board[2][1] or board[3][1] or board[1][2] or board[4][2] or board[1][4] or board[4][4] or board[2][5] or board[3][5]:
+                score += 8
+            elif board[0][3] or board[5][3]:
+                score += 7
+            elif board[1][1] or board[4][1] or board[1][5] or board[4][5]:
+                score += 6
+            elif board[2][0] or board[3][0] or board[0][2] or board[5][2] or board[0][4] or board[5][4] or board[2][6] or board[3][6]:
+                score += 5
+            elif board[1][0] or board[4][0] or board[0][1] or board[5][1] or board[0][5] or board[5][5] or board[1][6] or board[4][6]:
+                score += 4
+            else: # board[0][0] or board[5][0] or board[0][6] or board[5][6]
+                score += 3
+    
+    # Horizontal score
+    # AI will prioritize getting horizontal 4-in-a-rows
+    for r in range(ROW_COUNT):
+        row_array = [int(i) for i in list(board[r,:])] # get all coloumn positions in a certain row r
+        for c in range(COLUMN_COUNT - 3):
+            window = row_array[c:c + WINDOW_LENGTH]
+            score += yellow_evaluate_window(window, piece)
+                
+    # Vertical score
+    # AI will also prioritize getting vertical 4-in-a-rows
+    for c in range(COLUMN_COUNT):
+        col_array = [int(i) for i in list(board[:,c])] # get all row positions in a certain column c
+        for r in range(ROW_COUNT - 3):
+            window = col_array[r:r + WINDOW_LENGTH]
+            score += yellow_evaluate_window(window, piece)
+
+    # Positively sloped diagonal score (/)
+    # AI prioritize 4-in-a-row in positive diagonal
+    for r in range(ROW_COUNT - 3):
+        for c in range(COLUMN_COUNT - 3):
+            window = [board[r + i][c + i] for i in range(WINDOW_LENGTH)] # start with r index i and c index i
+            score += yellow_evaluate_window(window, piece)
+
+    # Negatively sloped diagonal score (\)
+    # AI prioritize 4-in-a-row in negative diagonal
+    for r in range(ROW_COUNT - 3):
+        for c in range(COLUMN_COUNT - 3):
+            window = [board[r + 3 - i][c + i] for i in range(WINDOW_LENGTH)] # start with r index 3 and c index i
+            score += yellow_evaluate_window(window, piece)
+                
+    return score
+
 ''' (AI) Function that returns winning conditions or when there's no more valid locations '''
 def is_terminal_node(board):
     return winning_move(board, RED_PIECE) or winning_move(board, YELLOW_PIECE) or len(get_valid_locations(board)) == 0
@@ -193,15 +256,15 @@ def minimax(board, depth, maximizingPlayer):
     if depth == 0 or is_terminal:
         minimax.counter += 1
         if is_terminal: # when a terminal node is reached
-            if winning_move(board, YELLOW_PIECE):
+            if winning_move(board, RED_PIECE):
                 return (None, 100000)
-            elif winning_move(board, RED_PIECE):
+            elif winning_move(board, YELLOW_PIECE):
                 return (None, -100000)
             else: # game is over
                 return (None, 0)
             
         else: # depth == 0
-            return (None, score_position(board, YELLOW_PIECE))
+            return (None, score_position(board, RED_PIECE))
         
     if maximizingPlayer:
         best_score = -math.inf # V = -infinity
@@ -210,7 +273,7 @@ def minimax(board, depth, maximizingPlayer):
         for col_input in valid_locations:
             row = get_next_open_row(board, col_input)
             board_copy = board.copy()
-            place_piece(board_copy, row, col_input, YELLOW_PIECE)
+            place_piece(board_copy, row, col_input, RED_PIECE)
 
             new_score = minimax(board_copy, depth - 1, False)[1]
 
@@ -229,7 +292,7 @@ def minimax(board, depth, maximizingPlayer):
         for col_input in valid_locations:
             row = get_next_open_row(board, col_input)
             board_copy = board.copy()
-            place_piece(board_copy, row, col_input, RED_PIECE)
+            place_piece(board_copy, row, col_input, YELLOW_PIECE)
 
             new_score = minimax(board_copy, depth - 1, True)[1]
 
@@ -249,15 +312,15 @@ def red_alpha_beta(board, depth, alpha, beta, maximizingPlayer):
     if depth == 0 or is_terminal:
         red_alpha_beta.counter += 1
         if is_terminal: # when a terminal node is reached
-            if winning_move(board, YELLOW_PIECE):
+            if winning_move(board, RED_PIECE):
                 return (None, 100000)
-            elif winning_move(board, RED_PIECE):
+            elif winning_move(board, YELLOW_PIECE):
                 return (None, -100000)
             else: # game is over
                 return (None, 0)
             
         else: # depth == 0
-            return (None, score_position(board, YELLOW_PIECE))
+            return (None, score_position(board, RED_PIECE))
         
     # Maximizing player
     if maximizingPlayer:
@@ -268,7 +331,7 @@ def red_alpha_beta(board, depth, alpha, beta, maximizingPlayer):
         for col_input in valid_locations:
             row = get_next_open_row(board, col_input)
             board_copy = board.copy()
-            place_piece(board_copy, row, col_input, YELLOW_PIECE)
+            place_piece(board_copy, row, col_input, RED_PIECE)
 
             new_score = red_alpha_beta(board_copy, depth - 1, alpha, beta, False)[1]
             
@@ -293,7 +356,7 @@ def red_alpha_beta(board, depth, alpha, beta, maximizingPlayer):
         for col_input in valid_locations:
             row = get_next_open_row(board, col_input)
             board_copy = board.copy()
-            place_piece(board_copy, row, col_input, RED_PIECE)
+            place_piece(board_copy, row, col_input, YELLOW_PIECE)
 
             new_score = red_alpha_beta(board_copy, depth - 1, alpha, beta, True)[1]
             
@@ -326,7 +389,7 @@ def yellow_alpha_beta(board, depth, alpha, beta, maximizingPlayer):
                 return (None, 0)
             
         else: # depth == 0
-            return (None, score_position(board, YELLOW_PIECE))
+            return (None, yellow_score_position(board, YELLOW_PIECE))
         
     # Maximizing player
     if maximizingPlayer:
