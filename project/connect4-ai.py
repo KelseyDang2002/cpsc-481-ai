@@ -12,8 +12,8 @@ COLUMN_COUNT = 7
 WINDOW_LENGTH = 4
 SQUARE_SIZE = 100 # Size of squares in window is 100 pixels
 RADIUS = int(SQUARE_SIZE / 2 - 5) # radius for circles/player pieces
-MM_DEPTH = 4
-AB_DEPTH = 4
+MM_DEPTH = 4 # depth 5 starts to become slow
+AB_DEPTH = 4 # depth 7 starts to become slow
 
 PLAYER = 0
 AI = 1
@@ -379,8 +379,17 @@ def yellow_alpha_beta(board, depth, alpha, beta, maximizingPlayer):
         
         return column, best_score
 
+''' (AI) Function for Alpha-Beta using Principal Variation Search '''
+def yellow_AB_with_PVS(board, depth):
+    yellow_alpha_beta.counter += 1
+    best_move_sequence, best_score = principal_variation_search(board, depth, -math.inf, math.inf, YELLOW_PIECE)
+    if best_move_sequence:
+        return best_move_sequence[0]
+    else:
+        return None
+
 ''' (AI) Function that performs Principal Variation Search '''
-def principal_variation_search(board, depth, alpha, beta):
+def principal_variation_search(board, depth, alpha, beta, maximizingPlayer):
     valid_locations = get_valid_locations(board)
     is_terminal = is_terminal_node(board)
 
@@ -388,36 +397,59 @@ def principal_variation_search(board, depth, alpha, beta):
         principal_variation_search.counter += 1
         if is_terminal: # when a terminal node is reached
             if winning_move(board, YELLOW_PIECE):
-                return 100000
+                return ([], 100000)
             elif winning_move(board, RED_PIECE):
-                return -100000
+                return ([], -100000)
             else: # game is over
-                return 0
+                return ([], 0)
             
         else: # depth == 0
-            return score_position(board, YELLOW_PIECE)
+            return ([], score_position(board, YELLOW_PIECE))
     
-    best_score = -math.inf
+    pvs_list = []
+    # best_score = -math.inf
+    # column = random.choice(valid_locations)
 
     for col_input in valid_locations:
         row = get_next_open_row(board, col_input)
         board_copy = board.copy()
         place_piece(board_copy, row, col_input, YELLOW_PIECE)
 
-        score = -principal_variation_search(board, depth - 1, -beta, -alpha)
+        if maximizingPlayer:
+            score = -principal_variation_search(board, depth - 1, -beta, -alpha, False)[1]
 
-        if alpha < score < beta:
-                score = -principal_variation_search(board, depth - 1, -beta, -score)
+        else:
+            score = -principal_variation_search(board, depth - 1, -beta, -alpha, True)[1]
 
-        best_score = max(best_score, score)
-        alpha = max(alpha, score)
+        undo_move(board, col_input, YELLOW_PIECE)
 
-        if alpha >= beta:
-            return alpha
+        if score >= beta:
+            return ([], beta)
         
-        beta = alpha + 1
+        if score > alpha:
+            alpha = score
+            pvs_list = [col_input] + pvs_list
 
-    return best_score
+    return pvs_list, alpha
+
+''' (AI) Function to undo move in principal variation search '''
+def undo_move(board, col_input, piece):
+    # find lowest empty cell in column
+    lowest_empty_row = find_lowest_empty_row(board, col_input)
+
+    # remove last player's piece from the board
+    board[lowest_empty_row][col_input] = 0
+
+    # switch player
+    piece = (piece - 1) % 2
+    pass
+
+''' (AI) Function to find lowest empty row '''
+def find_lowest_empty_row(board, col_input):
+    for row in range(ROW_COUNT - 1, -1, -1):
+        if board[row][col_input] == 0:
+            return row
+    return -1
 
 ''' (AI) Function for AI to determine whether a location is valid '''
 def get_valid_locations(board):
@@ -476,8 +508,6 @@ red_alpha_beta.counter = 0
 yellow_alpha_beta.counter = 0
 principal_variation_search.counter = 0
 
-pvs_list = []
-
 print_terminal_menu()
 menu_input = int(input("\nSelect an option (1-4): "))
 
@@ -531,7 +561,7 @@ while not game_over:
         # Minimax turn
         elif menu_input == 2:
             if turn == PLAYER:
-                col_input, minimax_score = minimax(board, MM_DEPTH, True) # depth 5 starts to become slow
+                col_input, minimax_score = minimax(board, MM_DEPTH, True)
                 print(f'\nRED turn:\tColumn = {col_input}\tScore = {minimax_score}')
                 print(f'Minimax calls: {minimax.counter}')
 
@@ -558,7 +588,7 @@ while not game_over:
         # Alpha-Beta turn
         elif menu_input == 3:
             if turn == PLAYER:
-                col_input, ab_score = red_alpha_beta(board, AB_DEPTH, -math.inf, math.inf, True) # depth 7 starts to become slow
+                col_input, ab_score = red_alpha_beta(board, AB_DEPTH, -math.inf, math.inf, True)
                 print(f'\nRED turn:\tColumn = {col_input}\tScore = {ab_score}')
                 print(f'RED Alpha-Beta calls: {red_alpha_beta.counter}')
 
@@ -627,12 +657,15 @@ while not game_over:
 
     # Alpha-Beta turn
     if turn == AI and not game_over:
-        pvs_score = principal_variation_search(board, AB_DEPTH, -math.inf, math.inf)
-        pvs_list.append(pvs_score)
-        col_input, ab_score = yellow_alpha_beta(board, AB_DEPTH, -math.inf, math.inf, True) # depth 7 starts to become slow
+        # col_input, pvs_score = principal_variation_search(board, AB_DEPTH, -math.inf, math.inf, True)
+        pvs_list, pvs_score = principal_variation_search(board, AB_DEPTH, -math.inf, math.inf, False)
+        col_input, ab_score = yellow_alpha_beta(board, AB_DEPTH, -math.inf, math.inf, True)
+        # col_input = yellow_AB_with_PVS(board, AB_DEPTH)
+
         print(f'\nPVS score:\t{pvs_score}\tPVS list: {pvs_list}')
         print(f'PVS calls:\t{principal_variation_search.counter}')
         print(f'\nYELLOW turn:\tColumn = {col_input}\tScore = {ab_score}')
+        # print(f'\nYELLOW turn:\tColumn = {col_input}')
         print(f'YELLOW Alpha-Beta calls: {yellow_alpha_beta.counter}')
 
         if is_valid_location(board, col_input):
