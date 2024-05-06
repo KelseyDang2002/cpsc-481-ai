@@ -264,7 +264,7 @@ def minimax(board, depth, maximizingPlayer):
                 return (None, 0)
             
         else: # depth == 0
-            return (None, score_position(board, RED_PIECE))
+            return (None, yellow_score_position(board, RED_PIECE))
         
     if maximizingPlayer:
         best_score = -math.inf # V = -infinity
@@ -320,7 +320,7 @@ def red_alpha_beta(board, depth, alpha, beta, maximizingPlayer):
                 return (None, 0)
             
         else: # depth == 0
-            return (None, score_position(board, RED_PIECE))
+            return (None, yellow_score_position(board, RED_PIECE))
         
     # Maximizing player
     if maximizingPlayer:
@@ -533,7 +533,7 @@ def pick_best_move(board, piece):
         row = get_next_open_row(board, col_input)
         temp_board = board.copy() # make a copy of board because we don't want to make modifications to original board
         place_piece(temp_board, row, col_input, piece) # place piece at the random location
-        score = score_position(temp_board, piece) # score of location
+        score = yellow_score_position(temp_board, piece) # score of location
         
         # check if score is the best score out of the valid locations
         if score > best_score:
