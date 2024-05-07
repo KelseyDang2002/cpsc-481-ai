@@ -12,8 +12,8 @@ COLUMN_COUNT = 7
 WINDOW_LENGTH = 4
 SQUARE_SIZE = 100 # Size of squares in window is 100 pixels
 RADIUS = int(SQUARE_SIZE / 2 - 5) # radius for circles/player pieces
-MM_DEPTH = 5 # depth 5 starts to become slow
-AB_DEPTH = 5 # depth 7 starts to become slow
+MM_DEPTH = 4 # depth 5 starts to become slow
+AB_DEPTH = 4 # depth 7 starts to become slow
 
 PLAYER = 0
 AI = 1
@@ -28,6 +28,7 @@ COLOR_BLACK = (0, 0, 0)
 COLOR_RED = (255, 0, 0)
 COLOR_YELLOW = (255, 255, 0)
 
+
 ''' Function to create the game board with 6 rows & 7 columns '''
 def create_board():
     board = np.zeros((ROW_COUNT, COLUMN_COUNT))
@@ -40,6 +41,13 @@ def place_piece(board, row, col_input, piece):
 ''' Function to see if a location is valid when the top row is not filled '''
 def is_valid_location(board, col_input):
     return board[ROW_COUNT - 1][col_input] == 0
+
+def full_board(board):
+    for row in board:
+        for cell in row:
+            if cell == 0:
+                return False #if the cell is not empty,board is not full
+    return True #if no empty cell, then the board is full
 
 ''' Function to get the next open row '''
 def get_next_open_row(board, col_input):
@@ -59,6 +67,7 @@ def print_terminal_menu():
     print("\n2. Minimax (R) vs Alpha-Beta (Y)")
     print("\n3. Alpha-Beta (R) vs Alpha-Beta (Y)")
     print("\n4. Player (R) vs Alpha-Beta (Y)")
+    print("\n5. Player (R) vs Principle") #in progress and testing it out 
 
 ''' Function that defines all 4-in-a-row winning combinations '''
 def winning_move(board, piece):
@@ -162,7 +171,7 @@ def yellow_evaluate_window(window, piece):
     if window.count(piece) == 4: # if window contains 4 pieces of same color = win
         score += 100
     elif window.count(piece) == 3 and window.count(EMPTY) == 1: # if window has 3 pieces of same color
-        score += 50
+        score += 20
     elif window.count(piece) == 2 and window.count(EMPTY) == 2: # if window has 2 pieces of same color
         score += 10
         
@@ -170,7 +179,7 @@ def yellow_evaluate_window(window, piece):
     if window.count(opponent_piece) == 3 and window.count(EMPTY) == 1: # opponent window has 3 pieces
         score -= 80
     elif window.count(opponent_piece) == 2 and window.count(EMPTY) == 2: # opponent window has 2 pieces
-        score -= 5
+        score -= 20
         
     return score
 
@@ -442,6 +451,8 @@ def yellow_alpha_beta(board, depth, alpha, beta, maximizingPlayer):
         
         return column, best_score
 
+
+
 ''' (AI) Function for Alpha-Beta using Principal Variation Search '''
 def yellow_AB_with_PVS(board, depth):
     yellow_alpha_beta.counter += 1
@@ -506,6 +517,8 @@ def undo_move(board, col_input, piece):
     # switch player
     piece = (piece - 1) % 2
     pass
+
+
 
 ''' (AI) Function to find lowest empty row '''
 def find_lowest_empty_row(board, col_input):
@@ -610,6 +623,12 @@ while not game_over:
                         label = gamefont.render("RED WINS", RED_PIECE, COLOR_RED) # create player win text
                         screen.blit(label, (60, 10))
                         game_over = True
+                    
+                    if full_board(board):
+                        print("TIE GAME!")
+                        label = gamefont.render("TIE GAME!", True, COLOR_BLUE)
+                        screen.blit(label, (60,10))
+                        game_over = True
                         
                     print_terminal_board(board)
                     draw_pygame_board(board)
@@ -637,6 +656,12 @@ while not game_over:
                         label = gamefont.render("RED WINS", RED_PIECE, COLOR_RED) # create player win text
                         screen.blit(label, (60, 10))
                         game_over = True
+
+                    if full_board(board):
+                        print("TIE GAME!")
+                        label = gamefont.render("TIE GAME!", True, COLOR_BLUE)
+                        screen.blit(label, (60,10))
+                        game_over = True
                         
                     print_terminal_board(board)
                     draw_pygame_board(board)
@@ -663,6 +688,12 @@ while not game_over:
                         print("\nRED WINS!!!")
                         label = gamefont.render("RED WINS", RED_PIECE, COLOR_RED) # create player win text
                         screen.blit(label, (60, 10))
+                        game_over = True
+                        
+                    if full_board(board):
+                        print("TIE GAME!")
+                        label = gamefont.render("TIE GAME!", True, COLOR_BLUE)
+                        screen.blit(label, (60,10))
                         game_over = True
                         
                     print_terminal_board(board)
@@ -701,12 +732,21 @@ while not game_over:
                     if is_valid_location(board, col_input):
                         row = get_next_open_row(board, col_input)
                         place_piece(board, row, col_input, RED_PIECE)
+                        
+                    
 
                         if winning_move(board, RED_PIECE):
                             print("\nRED WINS!!!")
                             label = gamefont.render("RED WINS", RED_PIECE, COLOR_RED) # create player win text
                             screen.blit(label, (60, 10))
                             game_over = True
+                        
+                        if full_board(board):
+                            print("TIE GAME!")
+                            label = gamefont.render("TIE GAME!", True, COLOR_BLUE)
+                            screen.blit(label, (60,10))
+                            game_over = True
+                        
                             
                         print_terminal_board(board)
                         draw_pygame_board(board)
@@ -717,6 +757,8 @@ while not game_over:
                     else: # invalid location
                         print("\nInvalid move, try again.")
                         turn -= 1
+        
+                        
 
     # Alpha-Beta turn
     if turn == AI and not game_over:
