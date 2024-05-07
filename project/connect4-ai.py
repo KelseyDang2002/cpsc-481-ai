@@ -614,9 +614,13 @@ while not game_over:
                 col_input, pbm_score = pick_best_move(board, RED_PIECE) # basic AI bot
                 print(f'\nRED turn:\tColumn = {col_input}\tScore = {pbm_score}')
 
-                if is_valid_location(board, col_input):
-                    row = get_next_open_row(board, col_input)
-                    place_piece(board, row, col_input, RED_PIECE)
+                while True:
+                    if is_valid_location(board, col_input):
+                        row = get_next_open_row(board, col_input)
+                        place_piece(board, row, col_input, RED_PIECE)
+                    else: # invalid location
+                        print("\nInvalid move, try again.")
+                        turn -= 1
 
                     if winning_move(board, RED_PIECE):
                         print("\nRED WINS!!!")
@@ -636,10 +640,6 @@ while not game_over:
                     turn += 1
                     turn = turn % 2 # alternate turn to be equal to 0 or 1
 
-                else: # invalid location
-                    print("\nInvalid move, try again.")
-                    turn -= 1
-
         # Minimax turn
         elif menu_input == 2:
             if turn == PLAYER:
@@ -647,9 +647,13 @@ while not game_over:
                 print(f'\nRED turn:\tColumn = {col_input}\tScore = {minimax_score}')
                 print(f'Minimax calls: {minimax.counter}')
 
-                if is_valid_location(board, col_input):
-                    row = get_next_open_row(board, col_input)
-                    place_piece(board, row, col_input, RED_PIECE)
+                while True:
+                    if is_valid_location(board, col_input):
+                        row = get_next_open_row(board, col_input)
+                        place_piece(board, row, col_input, RED_PIECE)
+                    else: # invalid location
+                        print("\nInvalid move, try again.")
+                        turn -= 1
 
                     if winning_move(board, RED_PIECE):
                         print("\nRED WINS!!!")
@@ -668,10 +672,7 @@ while not game_over:
                         
                     turn += 1
                     turn = turn % 2 # alternate turn to be equal to 0 or 1
-
-                else: # invalid location
-                    print("\nInvalid move, try again.")
-                    turn -= 1
+                    break
 
         # Alpha-Beta turn
         elif menu_input == 3:
@@ -679,10 +680,14 @@ while not game_over:
                 col_input, ab_score = red_alpha_beta(board, AB_DEPTH, -math.inf, math.inf, True)
                 print(f'\nRED turn:\tColumn = {col_input}\tScore = {ab_score}')
                 print(f'RED Alpha-Beta calls: {red_alpha_beta.counter}')
-
-                if is_valid_location(board, col_input):
-                    row = get_next_open_row(board, col_input)
-                    place_piece(board, row, col_input, RED_PIECE)
+                
+                while True:
+                    if is_valid_location(board, col_input):
+                        row = get_next_open_row(board, col_input)
+                        place_piece(board, row, col_input, RED_PIECE)
+                    else: # invalid location
+                        print("\nInvalid move, try again.")
+                        turn -= 1
 
                     if winning_move(board, RED_PIECE):
                         print("\nRED WINS!!!")
@@ -701,10 +706,7 @@ while not game_over:
                         
                     turn += 1
                     turn = turn % 2 # alternate turn to be equal to 0 or 1
-
-                else: # invalid location
-                    print("\nInvalid move, try again.")
-                    turn -= 1
+                    break
 
         # Player turn
         elif menu_input == 4:
@@ -724,17 +726,20 @@ while not game_over:
                 pygame.draw.rect(screen, COLOR_BLACK, (0, 0, window_width, SQUARE_SIZE))
                 
                 # Player 1 turn
-                if turn == PLAYER:
-                    posx = event.pos[0]
-                    col_input = int(math.floor(posx / SQUARE_SIZE)) # divide to get numbers 0-7
-                    print(f'\nRED turn:\tColumn = {col_input}')
-
-                    if is_valid_location(board, col_input):
-                        row = get_next_open_row(board, col_input)
-                        place_piece(board, row, col_input, RED_PIECE)
-                        
+                while True:
+                    if turn == PLAYER:
+                        posx = event.pos[0]
+                        col_input = int(math.floor(posx / SQUARE_SIZE)) # divide to get numbers 0-7
+                        print(f'\nRED turn:\tColumn = {col_input}')
+                     
+                        if is_valid_location(board, col_input):
+                            row = get_next_open_row(board, col_input)
+                            place_piece(board, row, col_input, RED_PIECE)
+                        else:
+                            print("\nInvalid move, try again.")
+                            turn -= 1
                     
-
+                    
                         if winning_move(board, RED_PIECE):
                             print("\nRED WINS!!!")
                             label = gamefont.render("RED WINS", RED_PIECE, COLOR_RED) # create player win text
@@ -753,10 +758,11 @@ while not game_over:
                             
                         turn += 1
                         turn = turn % 2 # alternate turn to be equal to 0 or 1
+                        break
 
-                    else: # invalid location
-                        print("\nInvalid move, try again.")
-                        turn -= 1
+                    #else: # invalid location
+                        #print("\nInvalid move, try again.")
+                        #turn -= 1
         
                         
 
