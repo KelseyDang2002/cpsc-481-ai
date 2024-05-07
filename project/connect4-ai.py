@@ -12,8 +12,8 @@ COLUMN_COUNT = 7
 WINDOW_LENGTH = 4
 SQUARE_SIZE = 100 # Size of squares in window is 100 pixels
 RADIUS = int(SQUARE_SIZE / 2 - 5) # radius for circles/player pieces
-MM_DEPTH = 4 # depth 5 starts to become slow
-AB_DEPTH = 4 # depth 7 starts to become slow
+MM_DEPTH = 5 # depth 5 starts to become slow
+AB_DEPTH = 5 # depth 7 starts to become slow
 
 PLAYER = 0
 AI = 1
@@ -162,7 +162,7 @@ def yellow_evaluate_window(window, piece):
     if window.count(piece) == 4: # if window contains 4 pieces of same color = win
         score += 100
     elif window.count(piece) == 3 and window.count(EMPTY) == 1: # if window has 3 pieces of same color
-        score += 20
+        score += 50
     elif window.count(piece) == 2 and window.count(EMPTY) == 2: # if window has 2 pieces of same color
         score += 10
         
@@ -170,7 +170,7 @@ def yellow_evaluate_window(window, piece):
     if window.count(opponent_piece) == 3 and window.count(EMPTY) == 1: # opponent window has 3 pieces
         score -= 80
     elif window.count(opponent_piece) == 2 and window.count(EMPTY) == 2: # opponent window has 2 pieces
-        score -= 20
+        score -= 5
         
     return score
 
