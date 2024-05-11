@@ -12,8 +12,8 @@ COLUMN_COUNT = 7
 WINDOW_LENGTH = 4
 SQUARE_SIZE = 100 # Size of squares in window is 100 pixels
 RADIUS = int(SQUARE_SIZE / 2 - 5) # radius for circles/player pieces
-MM_DEPTH = 4 # depth 5 starts to become slow
-AB_DEPTH = 4 # depth 7 starts to become slow
+MM_DEPTH = 5 # depth 5 starts to become slow
+AB_DEPTH = 5 # depth 7 starts to become slow
 
 PLAYER = 0
 AI = 1
@@ -67,7 +67,7 @@ def print_terminal_menu():
     print("\n2. Minimax (R) vs Alpha-Beta (Y)")
     print("\n3. Alpha-Beta (R) vs Alpha-Beta (Y)")
     print("\n4. Player (R) vs Alpha-Beta (Y)")
-    print("\n5. Player (R) vs Principle") #in progress and testing it out 
+    # print("\n5. Player (R) vs PVS (Y)") #in progress and testing it out 
 
 ''' Function that defines all 4-in-a-row winning combinations '''
 def winning_move(board, piece):
@@ -584,6 +584,9 @@ red_alpha_beta.counter = 0
 yellow_alpha_beta.counter = 0
 principal_variation_search.counter = 0
 
+pvs_score_list = []
+col_list = []
+
 print_terminal_menu()
 menu_input = int(input("\nSelect an option (1-4): "))
 
@@ -770,10 +773,14 @@ while not game_over:
     if turn == AI and not game_over:
         # col_input, pvs_score = principal_variation_search(board, AB_DEPTH, -math.inf, math.inf, True)
         pvs_list, pvs_score = principal_variation_search(board, AB_DEPTH, -math.inf, math.inf, False)
+        pvs_score_list.append(pvs_score)
         col_input, ab_score = yellow_alpha_beta(board, AB_DEPTH, -math.inf, math.inf, True)
+        col_list.append(col_input)
         # col_input = yellow_AB_with_PVS(board, AB_DEPTH)
 
-        print(f'\nPVS score:\t{pvs_score}\tPVS list: {pvs_list}')
+        print(f'\nPVS score:\t{pvs_score}\tPVS column: {pvs_list}')
+        print(f'PVS score list:\t{pvs_score_list}')
+        print(f'Column list:\t{col_list}')
         print(f'PVS calls:\t{principal_variation_search.counter}')
         print(f'\nYELLOW turn:\tColumn = {col_input}\tScore = {ab_score}')
         # print(f'\nYELLOW turn:\tColumn = {col_input}')
