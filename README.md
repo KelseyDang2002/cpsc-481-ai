@@ -11,16 +11,38 @@
 ### How the Code is Structured (High Level Overview)
 
 1. Constant Declarations
+    - ...
+    - Minimax depth
+        - Set maximum depth of minimax tree
+    - Alpha-Beta depth
+        - Set maximum depth of Alpha-Beta tree
+    - ...
 2. Functions
     - ...
+    - Evaluate
+        - Function that evalutes board with window of size 4
     - Scoring System
-    - Basic AI
-    - Minimax
-    - Minimax w/ Alpha-Beta
+        - Keeps track of score based on piece positions (vertical, horizontal, diagonal, center column)
+    - Basic AI (R)
+        - AI that makes move by looking at current board state and selecting the position that yields the highest score (non-minimax)
+    - Minimax (R)
+        - Function that performs the Minimax algorithm 
+    - Minimax w/ Alpha-Beta (R)
+        - Function that performs the Alpha-Beta Pruning algorithm for the red player
+    - Minimax w/ Alpha-Beta (Y)
+        - Function that performs the Alpha-Beta Pruning algorithm for the yellow player
+    - Principal Variation Search (Y)
+        - Function that performs Principal Variation Search and returns the best score and corresponding best move
+        - Appends score and move into a list in main
+    - Draw pygame board
+        - Pygame window GUI for the board and pieces placed
     - ...
 3. Main
     - GUI
-    - 
+    - (Option 1) Basic AI (R) vs Alpha-Beta (Y)
+    - (Option 2) Minimax (R) vs Alpha-Beta (Y)
+    - (Option 3) Alpha-Beta (R) vs Alpha-Beta (Y)
+    - (Option 4) Player (R) vs Alpha-Beta (Y)
 
 ### Description of Code Structure
 
