@@ -44,8 +44,6 @@
     - (Option 3) Alpha-Beta (R) vs Alpha-Beta (Y)
     - (Option 4) Player (R) vs Alpha-Beta (Y)
 
-### Description of Code Structure
-
 ## How to Execute and Interact with Program
 
 ### Setup
